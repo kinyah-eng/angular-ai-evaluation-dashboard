@@ -22,54 +22,46 @@ import { authTokenInterceptor } from './core/http/auth-token.interceptor';
 import { mockApiInterceptor } from './core/http/mock-api.interceptor';
 import { requestContextInterceptor } from './core/http/request-context.interceptor';
 import { EVALUATION_API_REPOSITORY } from './data-access/repositories/evaluation-api.repository';
-import { EVALUATION_TASK_REPOSITORY } from './data-access/repositories/evaluation-task.repository';
 import { HttpEvaluationApiRepository } from './data-access/repositories/http-evaluation-api.repository';
-import { LocalStorageEvaluationTaskRepository } from './data-access/repositories/local-storage-evaluation-task.repository';
 
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
+export const appConfig:
+  ApplicationConfig = {
+    providers: [
+      provideBrowserGlobalErrorListeners(),
 
-    provideZoneChangeDetection({
-      eventCoalescing: true,
-    }),
+      provideZoneChangeDetection({
+        eventCoalescing: true,
+      }),
 
-    provideRouter(
-      routes,
-      withHashLocation(),
-    ),
+      provideRouter(
+        routes,
+        withHashLocation(),
+      ),
 
-    provideHttpClient(
-      withInterceptors([
-        authTokenInterceptor,
-        requestContextInterceptor,
-        apiErrorInterceptor,
-        mockApiInterceptor,
-      ]),
-    ),
+      provideHttpClient(
+        withInterceptors([
+          authTokenInterceptor,
+          requestContextInterceptor,
+          apiErrorInterceptor,
+          mockApiInterceptor,
+        ]),
+      ),
 
-    {
-      provide: APP_ENVIRONMENT,
-      useValue: environment,
-    },
+      {
+        provide: APP_ENVIRONMENT,
+        useValue: environment,
+      },
 
-    {
-      provide:
-        EVALUATION_TASK_REPOSITORY,
-      useClass:
-        LocalStorageEvaluationTaskRepository,
-    },
+      {
+        provide:
+          EVALUATION_API_REPOSITORY,
+        useExisting:
+          HttpEvaluationApiRepository,
+      },
 
-    {
-      provide:
-        EVALUATION_API_REPOSITORY,
-      useExisting:
-        HttpEvaluationApiRepository,
-    },
-
-    {
-      provide: ErrorHandler,
-      useClass: GlobalErrorHandler,
-    },
-  ],
-};
+      {
+        provide: ErrorHandler,
+        useClass: GlobalErrorHandler,
+      },
+    ],
+  };

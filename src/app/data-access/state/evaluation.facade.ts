@@ -2,7 +2,10 @@ import {
   inject,
   Injectable,
 } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  Observable,
+  take,
+} from 'rxjs';
 
 import { NotificationService } from '../../core/services/notification.service';
 import {
@@ -21,70 +24,151 @@ export class EvaluationFacade {
   private readonly notifications =
     inject(NotificationService);
 
-  readonly tasks$ = this.store.tasks$;
+  readonly tasks$ =
+    this.store.tasks$;
+
+  readonly loading$ =
+    this.store.loading$;
+
+  readonly error$ =
+    this.store.error$;
+
+  readonly pendingOperations$ =
+    this.store.pendingOperations$;
 
   getTask$(
     id: string,
-  ): Observable<EvaluationTask | undefined> {
+  ): Observable<
+    EvaluationTask | undefined
+  > {
     return this.store.getTask$(id);
   }
 
-  addTask(input: NewEvaluation): void {
-    this.store.addTask(input);
+  reload(): void {
+    this.store.reload();
+  }
 
-    this.notifications.success(
-      'Evaluation created',
-      `"${input.title.trim()}" was added to the workflow.`,
-    );
+  clearError(): void {
+    this.store.clearError();
+  }
+
+  addTask(
+    input: NewEvaluation,
+  ): void {
+    this.store
+      .addTask(input)
+      .pipe(take(1))
+      .subscribe({
+        next: (task) => {
+          this.notifications.success(
+            'Evaluation created',
+            `"${task.title}" was added to the workflow.`,
+          );
+        },
+
+        error: () => {
+          this.notifications.error(
+            'Creation failed',
+            'The evaluation could not be created.',
+          );
+        },
+      });
   }
 
   updateTask(
     id: string,
     input: NewEvaluation,
   ): boolean {
-    const updated =
-      this.store.updateTask(id, input);
-
-    if (updated) {
-      this.notifications.success(
-        'Evaluation updated',
-        `${id} was updated successfully.`,
-      );
-    } else {
+    if (!this.store.hasTask(id)) {
       this.notifications.error(
         'Update failed',
         `${id} could not be found.`,
       );
+
+      return false;
     }
 
-    return updated;
+    this.store
+      .updateTask(id, input)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.notifications.success(
+            'Evaluation updated',
+            `${id} was updated successfully.`,
+          );
+        },
+
+        error: () => {
+          this.notifications.error(
+            'Update failed',
+            `${id} could not be updated.`,
+          );
+        },
+      });
+
+    return true;
   }
 
   completeTask(id: string): void {
-    this.store.completeTask(id);
+    if (!this.store.hasTask(id)) {
+      this.notifications.error(
+        'Completion failed',
+        `${id} could not be found.`,
+      );
 
-    this.notifications.success(
-      'Evaluation completed',
-      `${id} was marked as completed.`,
-    );
+      return;
+    }
+
+    this.store
+      .completeTask(id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.notifications.success(
+            'Evaluation completed',
+            `${id} was marked as completed.`,
+          );
+        },
+
+        error: () => {
+          this.notifications.error(
+            'Completion failed',
+            `${id} could not be completed.`,
+          );
+        },
+      });
   }
 
   deleteTask(id: string): boolean {
-    const deleted =
-      this.store.deleteTask(id);
-
-    if (deleted) {
-      this.notifications.warning(
-        'Evaluation deleted',
-        `${id} was removed from the workflow.`,
-      );
-    } else {
+    if (!this.store.hasTask(id)) {
       this.notifications.error(
         'Deletion failed',
         `${id} could not be found.`,
       );
+
+      return false;
     }
 
-    return deleted;
+    this.store
+      .deleteTask(id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.notifications.warning(
+            'Evaluation deleted',
+            `${id} was removed from the workflow.`,
+          );
+        },
+
+        error: () => {
+          this.notifications.error(
+            'Deletion failed',
+            `${id} could not be deleted.`,
+          );
+        },
+      });
+
+    return true;
   }
 }

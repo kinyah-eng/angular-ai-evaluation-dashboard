@@ -1,5 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom } from 'rxjs';
+import {
+  firstValueFrom,
+  of,
+  throwError,
+} from 'rxjs';
 import {
   beforeEach,
   describe,
@@ -8,128 +12,289 @@ import {
   vi,
 } from 'vitest';
 
-import { EVALUATION_TASK_REPOSITORY } from '../repositories/evaluation-task.repository';
+import { ApplicationError } from '../../core/errors/application-error';
+import {
+  EvaluationTask,
+  NewEvaluation,
+} from '../models/evaluation-task.model';
+import { EVALUATION_API_REPOSITORY } from '../repositories/evaluation-api.repository';
 import { EvaluationTaskStore } from './evaluation-task.store';
 
-describe('EvaluationTaskStore', () => {
-  let store: EvaluationTaskStore;
+describe(
+  'EvaluationTaskStore',
+  () => {
+    const seedTasks:
+      EvaluationTask[] = [
+        {
+          id: 'EV-1042',
+          title:
+            'Angular reactive form validation',
+          category: 'Code Review',
+          reviewer:
+            'Samuel Kamande',
+          status: 'In Review',
+          statusKey: 'review',
+          qualityScore: 92,
+        },
+        {
+          id: 'EV-1041',
+          title:
+            'RxJS subscription leak analysis',
+          category: 'Debugging',
+          reviewer: 'Amina Noor',
+          status: 'Completed',
+          statusKey: 'completed',
+          qualityScore: 98,
+        },
+      ];
 
-  let repositoryMock: {
-    load: ReturnType<typeof vi.fn>;
-    save: ReturnType<typeof vi.fn>;
-    clear: ReturnType<typeof vi.fn>;
-  };
+    const input:
+      NewEvaluation = {
+        title:
+          'Review HTTP state management',
+        category: 'Code Review',
+        reviewer:
+          'Samuel Kamande',
+        status: 'In Review',
+      };
 
-  beforeEach(() => {
-    repositoryMock = {
-      load: vi.fn(() => null),
-      save: vi.fn(),
-      clear: vi.fn(),
+    let apiMock: {
+      list: ReturnType<typeof vi.fn>;
+      getById:
+        ReturnType<typeof vi.fn>;
+      create:
+        ReturnType<typeof vi.fn>;
+      update:
+        ReturnType<typeof vi.fn>;
+      complete:
+        ReturnType<typeof vi.fn>;
+      delete:
+        ReturnType<typeof vi.fn>;
     };
 
-    TestBed.configureTestingModule({
-      providers: [
+    let store:
+      EvaluationTaskStore;
+
+    beforeEach(() => {
+      apiMock = {
+        list: vi.fn(
+          () => of(seedTasks),
+        ),
+
+        getById: vi.fn(),
+
+        create: vi.fn(),
+
+        update: vi.fn(),
+
+        complete: vi.fn(),
+
+        delete: vi.fn(),
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          EvaluationTaskStore,
+
+          {
+            provide:
+              EVALUATION_API_REPOSITORY,
+            useValue: apiMock,
+          },
+        ],
+      });
+
+      store = TestBed.inject(
         EvaluationTaskStore,
-        {
-          provide: EVALUATION_TASK_REPOSITORY,
-          useValue: repositoryMock,
-        },
-      ],
+      );
     });
 
-    store = TestBed.inject(EvaluationTaskStore);
-  });
+    it('loads evaluations from the API', async () => {
+      const tasks =
+        await firstValueFrom(
+          store.tasks$,
+        );
 
-  it('loads the initial evaluation tasks', async () => {
-    const tasks = await firstValueFrom(store.tasks$);
+      expect(tasks).toEqual(
+        seedTasks,
+      );
 
-    expect(tasks).toHaveLength(4);
-    expect(repositoryMock.load).toHaveBeenCalledOnce();
-  });
-
-  it('adds a new evaluation task', async () => {
-    store.addTask({
-      title: 'Test Angular routing behavior',
-      category: 'Code Review',
-      reviewer: 'Samuel Kamande',
-      status: 'In Review',
+      expect(
+        apiMock.list,
+      ).toHaveBeenCalledOnce();
     });
 
-    const tasks = await firstValueFrom(store.tasks$);
+    it('reports a ready load state', async () => {
+      const loading =
+        await firstValueFrom(
+          store.loading$,
+        );
 
-    expect(tasks).toHaveLength(5);
-
-    expect(tasks[0].title).toBe(
-      'Test Angular routing behavior',
-    );
-  });
-
-  it('updates an existing evaluation', async () => {
-    const updated = store.updateTask(
-      'EV-1042',
-      {
-        title: 'Updated Angular validation task',
-        category: 'Maintainability',
-        reviewer: 'Samuel Kamande',
-        status: 'Completed',
-      },
-    );
-
-    const task = await firstValueFrom(
-      store.getTask$('EV-1042'),
-    );
-
-    expect(updated).toBe(true);
-
-    expect(task?.title).toBe(
-      'Updated Angular validation task',
-    );
-
-    expect(task?.status).toBe('Completed');
-  });
-
-  it('marks an evaluation as complete', async () => {
-    store.completeTask('EV-1040');
-
-    const task = await firstValueFrom(
-      store.getTask$('EV-1040'),
-    );
-
-    expect(task?.status).toBe('Completed');
-    expect(task?.statusKey).toBe('completed');
-  });
-
-  it('deletes an evaluation task', async () => {
-    const deleted = store.deleteTask('EV-1041');
-
-    const tasks = await firstValueFrom(
-      store.tasks$,
-    );
-
-    expect(deleted).toBe(true);
-
-    expect(
-      tasks.some((task) => task.id === 'EV-1041'),
-    ).toBe(false);
-  });
-
-  it('persists state changes through the repository', () => {
-    store.addTask({
-      title: 'Evaluate a repository abstraction',
-      category: 'Code Review',
-      reviewer: 'Samuel Kamande',
-      status: 'In Review',
+      expect(loading).toBe(false);
     });
 
-    expect(repositoryMock.save).toHaveBeenCalledOnce();
+    it('creates and prepends an evaluation', async () => {
+      const createdTask:
+        EvaluationTask = {
+          id: 'EV-1043',
+          ...input,
+          statusKey: 'review',
+          qualityScore: 0,
+        };
 
-    expect(repositoryMock.save).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
+      apiMock.create
+        .mockReturnValue(
+          of(createdTask),
+        );
+
+      const result =
+        await firstValueFrom(
+          store.addTask(input),
+        );
+
+      const tasks =
+        await firstValueFrom(
+          store.tasks$,
+        );
+
+      expect(result).toEqual(
+        createdTask,
+      );
+
+      expect(tasks[0]).toEqual(
+        createdTask,
+      );
+    });
+
+    it('updates an evaluation', async () => {
+      const updatedTask:
+        EvaluationTask = {
+          ...seedTasks[0],
           title:
-            'Evaluate a repository abstraction',
-        }),
-      ]),
-    );
-  });
-});
+            'Updated Angular evaluation',
+          status: 'Completed',
+          statusKey: 'completed',
+        };
+
+      apiMock.update
+        .mockReturnValue(
+          of(updatedTask),
+        );
+
+      await firstValueFrom(
+        store.updateTask(
+          'EV-1042',
+          {
+            title:
+              updatedTask.title,
+            category:
+              updatedTask.category,
+            reviewer:
+              updatedTask.reviewer,
+            status:
+              updatedTask.status,
+          },
+        ),
+      );
+
+      const task =
+        await firstValueFrom(
+          store.getTask$(
+            'EV-1042',
+          ),
+        );
+
+      expect(task).toEqual(
+        updatedTask,
+      );
+    });
+
+    it('marks an evaluation complete', async () => {
+      const completedTask:
+        EvaluationTask = {
+          ...seedTasks[0],
+          status: 'Completed',
+          statusKey: 'completed',
+          qualityScore: 95,
+        };
+
+      apiMock.complete
+        .mockReturnValue(
+          of(completedTask),
+        );
+
+      await firstValueFrom(
+        store.completeTask(
+          'EV-1042',
+        ),
+      );
+
+      const task =
+        await firstValueFrom(
+          store.getTask$(
+            'EV-1042',
+          ),
+        );
+
+      expect(task?.status).toBe(
+        'Completed',
+      );
+    });
+
+    it('deletes an evaluation', async () => {
+      apiMock.delete
+        .mockReturnValue(
+          of(undefined),
+        );
+
+      await firstValueFrom(
+        store.deleteTask(
+          'EV-1042',
+        ),
+      );
+
+      const tasks =
+        await firstValueFrom(
+          store.tasks$,
+        );
+
+      expect(
+        tasks.some(
+          (task) =>
+            task.id === 'EV-1042',
+        ),
+      ).toBe(false);
+    });
+
+    it('tracks API mutation errors', async () => {
+      apiMock.create
+        .mockReturnValue(
+          throwError(
+            () =>
+              new ApplicationError(
+                'network_error',
+                'API request failed.',
+                'The API is unavailable.',
+              ),
+          ),
+        );
+
+      await expect(
+        firstValueFrom(
+          store.addTask(input),
+        ),
+      ).rejects.toBeInstanceOf(
+        ApplicationError,
+      );
+
+      const error =
+        await firstValueFrom(
+          store.error$,
+        );
+
+      expect(error).toBe(
+        'The API is unavailable.',
+      );
+    });
+  },
+);

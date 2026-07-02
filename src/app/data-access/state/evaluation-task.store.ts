@@ -1,199 +1,335 @@
-import { inject, Injectable } from '@angular/core';
+import {
+  inject,
+  Injectable,
+} from '@angular/core';
 import {
   BehaviorSubject,
+  catchError,
+  defer,
+  distinctUntilChanged,
+  filter,
+  finalize,
   map,
   Observable,
+  take,
+  tap,
+  throwError,
 } from 'rxjs';
 
+import { ApplicationError } from '../../core/errors/application-error';
 import {
-  EvaluationStatus,
-  EvaluationStatusKey,
   EvaluationTask,
   NewEvaluation,
 } from '../models/evaluation-task.model';
-import { EVALUATION_TASK_REPOSITORY } from '../repositories/evaluation-task.repository';
+import { EVALUATION_API_REPOSITORY } from '../repositories/evaluation-api.repository';
+import { EvaluationState } from './evaluation-state.model';
 
-const INITIAL_TASKS: EvaluationTask[] = [
-  {
-    id: 'EV-1042',
-    title: 'Angular reactive form validation',
-    category: 'Code Review',
-    reviewer: 'Samuel Kamande',
-    status: 'In Review',
-    statusKey: 'review',
-    qualityScore: 92,
-  },
-  {
-    id: 'EV-1041',
-    title: 'RxJS subscription leak analysis',
-    category: 'Debugging',
-    reviewer: 'Amina Noor',
-    status: 'Completed',
-    statusKey: 'completed',
-    qualityScore: 98,
-  },
-  {
-    id: 'EV-1040',
-    title: 'SCSS architecture assessment',
-    category: 'Maintainability',
-    reviewer: 'Samuel Kamande',
-    status: 'Needs Attention',
-    statusKey: 'attention',
-    qualityScore: 76,
-  },
-  {
-    id: 'EV-1039',
-    title: 'Angular component accessibility',
-    category: 'Accessibility',
-    reviewer: 'Daniel Otieno',
-    status: 'Completed',
-    statusKey: 'completed',
-    qualityScore: 96,
-  },
-];
+const INITIAL_STATE: EvaluationState = {
+  tasks: [],
+  loadStatus: 'idle',
+  errorMessage: null,
+  pendingOperations: [],
+};
 
 @Injectable({
   providedIn: 'root',
 })
 export class EvaluationTaskStore {
-  private readonly repository = inject(
-    EVALUATION_TASK_REPOSITORY,
+  private readonly api = inject(
+    EVALUATION_API_REPOSITORY,
   );
 
-  private readonly tasksSubject =
-    new BehaviorSubject<EvaluationTask[]>(
-      this.repository.load() ?? INITIAL_TASKS,
+  private readonly stateSubject =
+    new BehaviorSubject<EvaluationState>(
+      INITIAL_STATE,
     );
 
-  readonly tasks$ = this.tasksSubject.asObservable();
+  readonly state$ =
+    this.stateSubject.asObservable();
+
+  readonly tasks$ = this.state$.pipe(
+    map((state) => state.tasks),
+    distinctUntilChanged(),
+  );
+
+  readonly loading$ = this.state$.pipe(
+    map(
+      (state) =>
+        state.loadStatus === 'loading',
+    ),
+    distinctUntilChanged(),
+  );
+
+  readonly error$ = this.state$.pipe(
+    map((state) => state.errorMessage),
+    distinctUntilChanged(),
+  );
+
+  readonly pendingOperations$ =
+    this.state$.pipe(
+      map(
+        (state) =>
+          state.pendingOperations,
+      ),
+      distinctUntilChanged(),
+    );
+
+  constructor() {
+    this.reload();
+  }
+
+  reload(): void {
+    if (
+      this.stateSubject.value
+        .loadStatus === 'loading'
+    ) {
+      return;
+    }
+
+    this.patchState({
+      loadStatus: 'loading',
+      errorMessage: null,
+    });
+
+    this.api
+      .list()
+      .pipe(take(1))
+      .subscribe({
+        next: (tasks) => {
+          this.patchState({
+            tasks: [...tasks],
+            loadStatus: 'ready',
+            errorMessage: null,
+          });
+        },
+
+        error: (error: unknown) => {
+          this.patchState({
+            loadStatus: 'error',
+            errorMessage:
+              this.getErrorMessage(error),
+          });
+        },
+      });
+  }
 
   getTask$(
     id: string,
-  ): Observable<EvaluationTask | undefined> {
-    return this.tasks$.pipe(
-      map((tasks) =>
-        tasks.find((task) => task.id === id),
+  ): Observable<
+    EvaluationTask | undefined
+  > {
+    return this.state$.pipe(
+      filter(
+        (state) =>
+          state.loadStatus === 'ready' ||
+          state.loadStatus === 'error',
       ),
+
+      map((state) =>
+        state.tasks.find(
+          (task) => task.id === id,
+        ),
+      ),
+
+      distinctUntilChanged(),
     );
   }
 
-  addTask(input: NewEvaluation): void {
-    const currentTasks = this.tasksSubject.value;
+  hasTask(id: string): boolean {
+    return this.stateSubject.value.tasks
+      .some((task) => task.id === id);
+  }
 
-    const existingNumbers = currentTasks
-      .map((task) =>
-        Number(task.id.replace(/\D/g, '')),
-      )
-      .filter((value) => Number.isFinite(value));
-
-    const nextNumber =
-      Math.max(1042, ...existingNumbers) + 1;
-
-    const newTask: EvaluationTask = {
-      id: `EV-${nextNumber}`,
-      title: input.title.trim(),
-      category: input.category,
-      reviewer: input.reviewer.trim(),
-      status: input.status,
-      statusKey: this.getStatusKey(input.status),
-      qualityScore:
-        input.status === 'Completed' ? 95 : 0,
-    };
-
-    this.updateTasks([
-      newTask,
-      ...currentTasks,
-    ]);
+  addTask(
+    input: NewEvaluation,
+  ): Observable<EvaluationTask> {
+    return this.runMutation(
+      'create',
+      () => this.api.create(input),
+    ).pipe(
+      tap((createdTask) => {
+        this.patchState({
+          tasks: [
+            createdTask,
+            ...this.stateSubject.value
+              .tasks,
+          ],
+          errorMessage: null,
+        });
+      }),
+    );
   }
 
   updateTask(
     id: string,
     input: NewEvaluation,
-  ): boolean {
-    let taskFound = false;
-
-    const updatedTasks =
-      this.tasksSubject.value.map((task) => {
-        if (task.id !== id) {
-          return task;
-        }
-
-        taskFound = true;
-
-        return {
-          ...task,
-          title: input.title.trim(),
-          category: input.category,
-          reviewer: input.reviewer.trim(),
-          status: input.status,
-          statusKey: this.getStatusKey(input.status),
-          qualityScore:
-            input.status === 'Completed'
-              ? task.qualityScore || 95
-              : task.qualityScore,
-        };
-      });
-
-    if (taskFound) {
-      this.updateTasks(updatedTasks);
-    }
-
-    return taskFound;
+  ): Observable<EvaluationTask> {
+    return this.runMutation(
+      `update:${id}`,
+      () => this.api.update(id, input),
+    ).pipe(
+      tap((updatedTask) => {
+        this.patchState({
+          tasks:
+            this.stateSubject.value.tasks
+              .map((task) =>
+                task.id === id
+                  ? updatedTask
+                  : task,
+              ),
+          errorMessage: null,
+        });
+      }),
+    );
   }
 
-  completeTask(id: string): void {
-    const updatedTasks =
-      this.tasksSubject.value.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status: 'Completed' as const,
-              statusKey: 'completed' as const,
-              qualityScore:
-                task.qualityScore || 95,
-            }
-          : task,
+  completeTask(
+    id: string,
+  ): Observable<EvaluationTask> {
+    return this.runMutation(
+      `complete:${id}`,
+      () => this.api.complete(id),
+    ).pipe(
+      tap((completedTask) => {
+        this.patchState({
+          tasks:
+            this.stateSubject.value.tasks
+              .map((task) =>
+                task.id === id
+                  ? completedTask
+                  : task,
+              ),
+          errorMessage: null,
+        });
+      }),
+    );
+  }
+
+  deleteTask(
+    id: string,
+  ): Observable<void> {
+    return this.runMutation(
+      `delete:${id}`,
+      () => this.api.delete(id),
+    ).pipe(
+      tap(() => {
+        this.patchState({
+          tasks:
+            this.stateSubject.value.tasks
+              .filter(
+                (task) =>
+                  task.id !== id,
+              ),
+          errorMessage: null,
+        });
+      }),
+    );
+  }
+
+  clearError(): void {
+    this.patchState({
+      errorMessage: null,
+    });
+  }
+
+  private runMutation<T>(
+    operation: string,
+    requestFactory:
+      () => Observable<T>,
+  ): Observable<T> {
+    return defer(() => {
+      this.addPendingOperation(
+        operation,
       );
 
-    this.updateTasks(updatedTasks);
+      return requestFactory().pipe(
+        catchError(
+          (error: unknown) => {
+            this.patchState({
+              errorMessage:
+                this.getErrorMessage(
+                  error,
+                ),
+            });
+
+            return throwError(
+              () => error,
+            );
+          },
+        ),
+
+        finalize(() => {
+          this.removePendingOperation(
+            operation,
+          );
+        }),
+      );
+    });
   }
 
-  deleteTask(id: string): boolean {
-    const currentTasks = this.tasksSubject.value;
-
-    const updatedTasks = currentTasks.filter(
-      (task) => task.id !== id,
-    );
+  private addPendingOperation(
+    operation: string,
+  ): void {
+    const pendingOperations =
+      this.stateSubject.value
+        .pendingOperations;
 
     if (
-      updatedTasks.length === currentTasks.length
+      pendingOperations.includes(
+        operation,
+      )
     ) {
-      return false;
+      return;
     }
 
-    this.updateTasks(updatedTasks);
-    return true;
+    this.patchState({
+      pendingOperations: [
+        ...pendingOperations,
+        operation,
+      ],
+    });
   }
 
-  private updateTasks(
-    tasks: EvaluationTask[],
+  private removePendingOperation(
+    operation: string,
   ): void {
-    this.tasksSubject.next(tasks);
-    this.repository.save(tasks);
+    this.patchState({
+      pendingOperations:
+        this.stateSubject.value
+          .pendingOperations
+          .filter(
+            (candidate) =>
+              candidate !== operation,
+          ),
+    });
   }
 
-  private getStatusKey(
-    status: EvaluationStatus,
-  ): EvaluationStatusKey {
-    switch (status) {
-      case 'Completed':
-        return 'completed';
+  private patchState(
+    patch: Partial<EvaluationState>,
+  ): void {
+    this.stateSubject.next({
+      ...this.stateSubject.value,
+      ...patch,
+    });
+  }
 
-      case 'Needs Attention':
-        return 'attention';
-
-      default:
-        return 'review';
+  private getErrorMessage(
+    error: unknown,
+  ): string {
+    if (
+      error instanceof
+      ApplicationError
+    ) {
+      return error.userMessage;
     }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return (
+      'The evaluation operation ' +
+      'could not be completed.'
+    );
   }
 }
