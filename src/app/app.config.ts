@@ -21,7 +21,9 @@ import { apiErrorInterceptor } from './core/http/api-error.interceptor';
 import { authTokenInterceptor } from './core/http/auth-token.interceptor';
 import { mockApiInterceptor } from './core/http/mock-api.interceptor';
 import { requestContextInterceptor } from './core/http/request-context.interceptor';
+import { EVALUATION_API_REPOSITORY } from './data-access/repositories/evaluation-api.repository';
 import { EVALUATION_TASK_REPOSITORY } from './data-access/repositories/evaluation-task.repository';
+import { HttpEvaluationApiRepository } from './data-access/repositories/http-evaluation-api.repository';
 import { LocalStorageEvaluationTaskRepository } from './data-access/repositories/local-storage-evaluation-task.repository';
 
 export const appConfig: ApplicationConfig = {
@@ -56,6 +58,13 @@ export const appConfig: ApplicationConfig = {
         EVALUATION_TASK_REPOSITORY,
       useClass:
         LocalStorageEvaluationTaskRepository,
+    },
+
+    {
+      provide:
+        EVALUATION_API_REPOSITORY,
+      useExisting:
+        HttpEvaluationApiRepository,
     },
 
     {
