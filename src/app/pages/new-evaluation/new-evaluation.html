@@ -1,0 +1,70 @@
+<header class="page-header">
+  <div>
+    <span class="eyebrow">Create assignment</span>
+    <h1>New Evaluation</h1>
+    <p>Add a new task to the evaluation workflow.</p>
+  </div>
+
+  <a class="secondary-button" routerLink="/tasks">Cancel</a>
+</header>
+
+<form
+  class="page-card evaluation-form"
+  [formGroup]="evaluationForm"
+  (ngSubmit)="submit()"
+>
+  <label>
+    <span>Task title</span>
+    <input
+      type="text"
+      formControlName="title"
+      placeholder="Example: Review Angular state management solution"
+    />
+
+    @if (
+      evaluationForm.controls.title.touched &&
+      evaluationForm.controls.title.invalid
+    ) {
+      <small>Enter a title containing at least five characters.</small>
+    }
+  </label>
+
+  <div class="form-grid">
+    <label>
+      <span>Category</span>
+      <select formControlName="category">
+        <option>Code Review</option>
+        <option>Debugging</option>
+        <option>Maintainability</option>
+        <option>Accessibility</option>
+        <option>Security</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Status</span>
+      <select formControlName="status">
+        <option>In Review</option>
+        <option>Needs Attention</option>
+        <option>Completed</option>
+      </select>
+    </label>
+  </div>
+
+  <label>
+    <span>Reviewer</span>
+    <input type="text" formControlName="reviewer" />
+  </label>
+
+  <div class="form-actions">
+    <a class="secondary-button" routerLink="/tasks">Cancel</a>
+
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="evaluationForm.invalid"
+    >
+      Create evaluation
+    </button>
+  </div>
+</form>

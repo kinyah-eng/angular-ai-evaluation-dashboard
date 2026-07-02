@@ -1,0 +1,78 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/" aria-label="EvalOps dashboard">
+      <div class="brand__mark">E</div>
+
+      <div>
+        <strong>EvalOps</strong>
+        <span>AI Quality Platform</span>
+      </div>
+    </a>
+
+    <nav class="navigation" aria-label="Main navigation">
+      <a
+        class="navigation__item"
+        routerLink="/"
+        routerLinkActive="navigation__item--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+      >
+        <span>⌂</span>
+        Dashboard
+      </a>
+
+      <a
+        class="navigation__item"
+        routerLink="/tasks"
+        routerLinkActive="navigation__item--active"
+        ariaCurrentWhenActive="page"
+      >
+        <span>▤</span>
+        Evaluation Tasks
+      </a>
+
+      <a
+        class="navigation__item"
+        routerLink="/reviews"
+        routerLinkActive="navigation__item--active"
+        ariaCurrentWhenActive="page"
+      >
+        <span>✓</span>
+        Reviews
+      </a>
+
+      <a
+        class="navigation__item"
+        routerLink="/analytics"
+        routerLinkActive="navigation__item--active"
+        ariaCurrentWhenActive="page"
+      >
+        <span>⌁</span>
+        Analytics
+      </a>
+
+      <a
+        class="navigation__item"
+        routerLink="/settings"
+        routerLinkActive="navigation__item--active"
+        ariaCurrentWhenActive="page"
+      >
+        <span>⚙</span>
+        Settings
+      </a>
+    </nav>
+
+    <div class="sidebar__profile">
+      <div class="avatar">SK</div>
+
+      <div>
+        <strong>Samuel Kamande</strong>
+        <span>Senior Evaluator</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

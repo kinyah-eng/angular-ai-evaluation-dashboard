@@ -1,0 +1,78 @@
+<header class="page-header">
+  <div>
+    <span class="eyebrow">Task management</span>
+    <h1>Evaluation Tasks</h1>
+    <p>Search, filter, and manage AI evaluation assignments.</p>
+  </div>
+
+  <a class="primary-button" routerLink="/tasks/new">
+    ＋ New Evaluation
+  </a>
+</header>
+
+<section class="page-card">
+  <div class="filters">
+    <label>
+      <span>Search tasks</span>
+      <input
+        type="search"
+        [formControl]="searchControl"
+        placeholder="Search by task, ID, category, or reviewer"
+      />
+    </label>
+
+    <label>
+      <span>Status</span>
+      <select [formControl]="statusControl">
+        <option value="All">All statuses</option>
+        <option value="In Review">In Review</option>
+        <option value="Completed">Completed</option>
+        <option value="Needs Attention">Needs Attention</option>
+      </select>
+    </label>
+  </div>
+
+  @if (filteredTasks$ | async; as tasks) {
+    <p class="result-count">
+      {{ tasks.length }} task{{ tasks.length === 1 ? '' : 's' }} found
+    </p>
+
+    <div class="task-list">
+      @for (task of tasks; track task.id) {
+        <article class="task-row">
+          <div class="task-row__main">
+            <span>{{ task.id }}</span>
+            <h2>{{ task.title }}</h2>
+            <p>{{ task.category }} · {{ task.reviewer }}</p>
+          </div>
+
+          <span class="status status--{{ task.statusKey }}">
+            {{ task.status }}
+          </span>
+
+          <strong class="quality">
+            {{ task.qualityScore || 'Not scored' }}
+            @if (task.qualityScore) {
+              %
+            }
+          </strong>
+
+          @if (task.status !== 'Completed') {
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="completeTask(task.id)"
+            >
+              Mark complete
+            </button>
+          }
+        </article>
+      } @empty {
+        <div class="empty-state">
+          <h2>No matching tasks</h2>
+          <p>Try changing your search term or status filter.</p>
+        </div>
+      }
+    </div>
+  }
+</section>

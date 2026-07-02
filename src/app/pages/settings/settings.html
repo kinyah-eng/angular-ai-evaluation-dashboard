@@ -1,0 +1,55 @@
+<header class="page-header">
+  <div>
+    <span class="eyebrow">Personal preferences</span>
+    <h1>Settings</h1>
+    <p>Configure notifications and dashboard preferences.</p>
+  </div>
+</header>
+
+<form
+  class="page-card settings-form"
+  [formGroup]="settingsForm"
+  (ngSubmit)="save()"
+>
+  <label>
+    <input type="checkbox" formControlName="emailNotifications" />
+    <span>
+      <strong>Email notifications</strong>
+      Receive updates when evaluations are assigned.
+    </span>
+  </label>
+
+  <label>
+    <input type="checkbox" formControlName="qualityAlerts" />
+    <span>
+      <strong>Quality alerts</strong>
+      Receive alerts when a score falls below the threshold.
+    </span>
+  </label>
+
+  <label>
+    <input type="checkbox" formControlName="weeklySummary" />
+    <span>
+      <strong>Weekly summary</strong>
+      Receive a weekly performance report.
+    </span>
+  </label>
+
+  <label>
+    <input type="checkbox" formControlName="compactLayout" />
+    <span>
+      <strong>Compact layout</strong>
+      Reduce spacing in task tables and cards.
+    </span>
+  </label>
+
+  <div class="settings-actions">
+    @if (saved) {
+      <span class="saved-message">Settings saved successfully.</span>
+    }
+
+    <button class="primary-button" type="submit">
+      Save settings
+    </button>
+  </div>
+</form>

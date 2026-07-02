@@ -1,0 +1,36 @@
+<header class="page-header">
+  <div>
+    <span class="eyebrow">Performance reporting</span>
+    <h1>Analytics</h1>
+    <p>Live statistics calculated from the RxJS task store.</p>
+  </div>
+</header>
+
+@if (analytics$ | async; as analytics) {
+  <section class="analytics-grid">
+    <article class="page-card">
+      <span>Total evaluations</span>
+      <strong>{{ analytics.total }}</strong>
+    </article>
+
+    <article class="page-card">
+      <span>Completed</span>
+      <strong>{{ analytics.completed }}</strong>
+    </article>
+
+    <article class="page-card">
+      <span>Completion rate</span>
+      <strong>{{ analytics.completionRate.toFixed(1) }}%</strong>
+    </article>
+
+    <article class="page-card">
+      <span>Average quality</span>
+      <strong>{{ analytics.average.toFixed(1) }}%</strong>
+    </article>
+
+    <article class="page-card">
+      <span>Needs attention</span>
+      <strong>{{ analytics.attention }}</strong>
+    </article>
+  </section>
+}

@@ -1,0 +1,132 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+import {
+  EvaluationStatus,
+  EvaluationStatusKey,
+  EvaluationTask,
+  NewEvaluation,
+} from './evaluation-task';
+
+const STORAGE_KEY = 'evalops-evaluation-tasks';
+
+const INITIAL_TASKS: EvaluationTask[] = [
+  {
+    id: 'EV-1042',
+    title: 'Angular reactive form validation',
+    category: 'Code Review',
+    reviewer: 'Samuel Kamande',
+    status: 'In Review',
+    statusKey: 'review',
+    qualityScore: 92,
+  },
+  {
+    id: 'EV-1041',
+    title: 'RxJS subscription leak analysis',
+    category: 'Debugging',
+    reviewer: 'Amina Noor',
+    status: 'Completed',
+    statusKey: 'completed',
+    qualityScore: 98,
+  },
+  {
+    id: 'EV-1040',
+    title: 'SCSS architecture assessment',
+    category: 'Maintainability',
+    reviewer: 'Samuel Kamande',
+    status: 'Needs Attention',
+    statusKey: 'attention',
+    qualityScore: 76,
+  },
+  {
+    id: 'EV-1039',
+    title: 'Angular component accessibility',
+    category: 'Accessibility',
+    reviewer: 'Daniel Otieno',
+    status: 'Completed',
+    statusKey: 'completed',
+    qualityScore: 96,
+  },
+];
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TaskStore {
+  private readonly tasksSubject =
+    new BehaviorSubject<EvaluationTask[]>(this.loadTasks());
+
+  readonly tasks$ = this.tasksSubject.asObservable();
+
+  addTask(input: NewEvaluation): void {
+    const currentTasks = this.tasksSubject.value;
+
+    const existingNumbers = currentTasks
+      .map((task) => Number(task.id.replace(/\D/g, '')))
+      .filter((value) => Number.isFinite(value));
+
+    const nextNumber = Math.max(1042, ...existingNumbers) + 1;
+
+    const newTask: EvaluationTask = {
+      id: `EV-${nextNumber}`,
+      title: input.title.trim(),
+      category: input.category,
+      reviewer: input.reviewer.trim(),
+      status: input.status,
+      statusKey: this.getStatusKey(input.status),
+      qualityScore: input.status === 'Completed' ? 95 : 0,
+    };
+
+    this.updateTasks([newTask, ...currentTasks]);
+  }
+
+  completeTask(id: string): void {
+    const updatedTasks = this.tasksSubject.value.map((task) =>
+      task.id === id
+        ? {
+            ...task,
+            status: 'Completed' as const,
+            statusKey: 'completed' as const,
+            qualityScore: task.qualityScore || 95,
+          }
+        : task,
+    );
+
+    this.updateTasks(updatedTasks);
+  }
+
+  private updateTasks(tasks: EvaluationTask[]): void {
+    this.tasksSubject.next(tasks);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    } catch {
+      // The application still works when browser storage is unavailable.
+    }
+  }
+
+  private loadTasks(): EvaluationTask[] {
+    try {
+      const storedTasks = localStorage.getItem(STORAGE_KEY);
+
+      if (storedTasks) {
+        return JSON.parse(storedTasks) as EvaluationTask[];
+      }
+    } catch {
+      // Fall back to the initial demonstration data.
+    }
+
+    return INITIAL_TASKS;
+  }
+
+  private getStatusKey(status: EvaluationStatus): EvaluationStatusKey {
+    switch (status) {
+      case 'Completed':
+        return 'completed';
+      case 'Needs Attention':
+        return 'attention';
+      default:
+        return 'review';
+    }
+  }
+}

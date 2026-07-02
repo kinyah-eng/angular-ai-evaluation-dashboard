@@ -1,0 +1,38 @@
+<header class="page-header">
+  <div>
+    <span class="eyebrow">Review queue</span>
+    <h1>Reviews</h1>
+    <p>Resolve evaluations that still require reviewer action.</p>
+  </div>
+</header>
+
+<section class="page-card review-list">
+  @if (pendingReviews$ | async; as tasks) {
+    @for (task of tasks; track task.id) {
+      <article>
+        <div>
+          <span>{{ task.id }}</span>
+          <h2>{{ task.title }}</h2>
+          <p>{{ task.reviewer }} · {{ task.category }}</p>
+        </div>
+
+        <span class="status status--{{ task.statusKey }}">
+          {{ task.status }}
+        </span>
+
+        <button
+          class="primary-button"
+          type="button"
+          (click)="completeReview(task.id)"
+        >
+          Complete review
+        </button>
+      </article>
+    } @empty {
+      <div class="empty-message">
+        <h2>All reviews are complete</h2>
+        <p>There are currently no evaluations requiring action.</p>
+      </div>
+    }
+  }
+</section>

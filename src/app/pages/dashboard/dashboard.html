@@ -1,0 +1,130 @@
+<header class="topbar">
+  <div>
+    <p class="eyebrow">{{ currentDate }}</p>
+    <h1>AI Evaluation Dashboard</h1>
+    <p class="subtitle">
+      Monitor evaluation quality, reviewer activity, and task progress.
+    </p>
+  </div>
+
+  <a class="primary-button" routerLink="/tasks/new">
+    <span>＋</span>
+    New Evaluation
+  </a>
+</header>
+
+@if (metrics$ | async; as metrics) {
+  <section class="metrics-grid" aria-label="Performance overview">
+    @for (metric of metrics; track metric.label) {
+      <article class="metric-card">
+        <div class="metric-card__top">
+          <span>{{ metric.label }}</span>
+          <span>•••</span>
+        </div>
+
+        <strong>{{ metric.value }}</strong>
+
+        <p [class.metric-card__change--warning]="!metric.positive">
+          {{ metric.change }}
+        </p>
+      </article>
+    }
+  </section>
+}
+
+<section class="dashboard-grid">
+  <article class="panel panel--tasks">
+    <div class="panel__header">
+      <div>
+        <h2>Recent evaluation tasks</h2>
+        <p>Latest activity across the evaluation workflow</p>
+      </div>
+
+      <a class="secondary-button" routerLink="/tasks">
+        View all tasks
+      </a>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Category</th>
+            <th>Reviewer</th>
+            <th>Status</th>
+            <th>Quality</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (recentTasks$ | async; as tasks) {
+            @for (task of tasks; track task.id) {
+              <tr>
+                <td>
+                  <strong>{{ task.title }}</strong>
+                  <span>{{ task.id }}</span>
+                </td>
+
+                <td>{{ task.category }}</td>
+                <td>{{ task.reviewer }}</td>
+
+                <td>
+                  <span class="status status--{{ task.statusKey }}">
+                    {{ task.status }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="score">
+                    <div class="score__track">
+                      <div
+                        class="score__fill"
+                        [style.width.%]="task.qualityScore"
+                      ></div>
+                    </div>
+
+                    <strong>
+                      {{ task.qualityScore || '—' }}
+                      @if (task.qualityScore) {
+                        %
+                      }
+                    </strong>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <aside class="panel quality-panel">
+    <div class="panel__header">
+      <div>
+        <h2>Quality overview</h2>
+        <p>Current evaluation performance</p>
+      </div>
+    </div>
+
+    <div class="quality-score">
+      <div class="quality-score__circle">
+        <strong>94.8</strong>
+        <span>overall score</span>
+      </div>
+    </div>
+
+    <div class="quality-list">
+      <div><span>Correctness</span><strong>97%</strong></div>
+      <div><span>Instruction following</span><strong>95%</strong></div>
+      <div><span>Code maintainability</span><strong>92%</strong></div>
+      <div><span>Safety compliance</span><strong>98%</strong></div>
+    </div>
+
+    <div class="quality-message">
+      <strong>Quality is improving</strong>
+      <p>Overall performance increased by 2.4% this month.</p>
+    </div>
+  </aside>
+</section>

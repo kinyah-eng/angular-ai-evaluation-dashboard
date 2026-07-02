@@ -1,0 +1,35 @@
+.review-list {
+  display: grid;
+
+  article {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  h2 {
+    margin: 4px 0;
+    font-size: 15px;
+  }
+
+  p,
+  span {
+    margin: 0;
+    color: #69758d;
+    font-size: 12px;
+  }
+}
+
+.empty-message {
+  padding: 50px 20px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .review-list article {
+    grid-template-columns: 1fr;
+  }
+}

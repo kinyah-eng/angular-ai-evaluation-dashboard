@@ -1,0 +1,44 @@
+.settings-form {
+  display: grid;
+  max-width: 720px;
+  gap: 10px;
+
+  > label {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 17px 0;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  input {
+    width: 18px;
+    height: 18px;
+  }
+
+  label span {
+    display: grid;
+    gap: 5px;
+    color: #69758d;
+    font-size: 12px;
+  }
+
+  label strong {
+    color: #172033;
+    font-size: 14px;
+  }
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  padding-top: 20px;
+}
+
+.saved-message {
+  color: #138560;
+  font-size: 13px;
+  font-weight: 700;
+}
