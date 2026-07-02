@@ -1,0 +1,133 @@
+.api-status {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  padding: 11px 12px;
+  border: 1px solid #293249;
+  border-radius: 10px;
+  background: #192235;
+}
+
+.api-status__indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a4adc0;
+  box-shadow:
+    0 0 0 4px
+    rgb(164 173 192 / 12%);
+}
+
+.api-status--online {
+  .api-status__indicator {
+    background: #30c48d;
+    box-shadow:
+      0 0 0 4px
+      rgb(48 196 141 / 14%);
+  }
+}
+
+.api-status--offline {
+  .api-status__indicator {
+    background: #ef6c67;
+    box-shadow:
+      0 0 0 4px
+      rgb(239 108 103 / 14%);
+  }
+}
+
+.api-status--checking {
+  .api-status__indicator {
+    background: #f0ad4e;
+    box-shadow:
+      0 0 0 4px
+      rgb(240 173 78 / 14%);
+    animation:
+      api-status-pulse 1.1s
+      ease-in-out infinite;
+  }
+}
+
+.api-status__content {
+  min-width: 0;
+
+  strong,
+  span,
+  small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: #ffffff;
+    font-size: 11px;
+  }
+
+  span {
+    margin-top: 2px;
+    color: #9ba6bc;
+    font-size: 9px;
+  }
+
+  small {
+    margin-top: 3px;
+    color: #6f7b94;
+    font-size: 8px;
+  }
+}
+
+.api-status__refresh {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: #9ba6bc;
+  font-size: 17px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: #ffffff;
+    background: #273148;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #8d84ff;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes api-status-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .api-status--checking {
+    .api-status__indicator {
+      animation: none;
+    }
+  }
+}

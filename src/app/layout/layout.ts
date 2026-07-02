@@ -9,9 +9,18 @@ import {
   RouterOutlet,
 } from '@angular/router';
 
-import { UserRole } from '../core/auth/auth.model';
-import { AuthService } from '../core/auth/auth.service';
-import { ToastContainer } from '../shared/ui/toast-container/toast-container';
+import {
+  UserRole,
+} from '../core/auth/auth.model';
+import {
+  AuthService,
+} from '../core/auth/auth.service';
+import {
+  ApiStatus,
+} from '../shared/ui/api-status/api-status';
+import {
+  ToastContainer,
+} from '../shared/ui/toast-container/toast-container';
 
 @Component({
   selector: 'app-layout',
@@ -19,6 +28,7 @@ import { ToastContainer } from '../shared/ui/toast-container/toast-container';
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    ApiStatus,
     ToastContainer,
   ],
   templateUrl: './layout.html',
@@ -44,6 +54,9 @@ export class Layout {
 
   protected logout(): void {
     this.auth.logout();
-    void this.router.navigate(['/login']);
+
+    void this.router.navigate([
+      '/login',
+    ]);
   }
 }
