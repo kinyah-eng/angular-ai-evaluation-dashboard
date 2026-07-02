@@ -241,6 +241,7 @@ describe(
               new ApplicationError(
                 'network_error',
                 'Request failed.',
+                'The evaluation could not be created.',
               ),
           ),
         );

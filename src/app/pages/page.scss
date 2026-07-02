@@ -92,3 +92,53 @@
     flex-direction: column;
   }
 }
+
+.submission-error {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid #f0c3c0;
+  border-radius: 9px;
+  color: #a9322d;
+  background: #fff3f2;
+
+  strong {
+    font-size: 13px;
+  }
+
+  span {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.button-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid
+    rgb(255 255 255 / 45%);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation:
+    button-spinner-rotate
+    650ms linear infinite;
+}
+
+@keyframes button-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+form[aria-busy='true'] {
+  cursor: progress;
+}
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+  .button-spinner {
+    animation-duration: 1.5s;
+  }
+}

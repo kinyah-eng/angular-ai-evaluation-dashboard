@@ -3,10 +3,14 @@ import {
   Injectable,
 } from '@angular/core';
 import {
+  catchError,
   Observable,
   take,
+  tap,
+  throwError,
 } from 'rxjs';
 
+import { ApplicationError } from '../../core/errors/application-error';
 import { NotificationService } from '../../core/services/notification.service';
 import {
   EvaluationTask,
@@ -52,26 +56,193 @@ export class EvaluationFacade {
     this.store.clearError();
   }
 
-  addTask(
+  createTask(
     input: NewEvaluation,
-  ): void {
-    this.store
+  ): Observable<EvaluationTask> {
+    return this.store
       .addTask(input)
-      .pipe(take(1))
-      .subscribe({
-        next: (task) => {
+      .pipe(
+        tap((task) => {
           this.notifications.success(
             'Evaluation created',
             `"${task.title}" was added to the workflow.`,
           );
-        },
+        }),
 
-        error: () => {
+        catchError((error: unknown) => {
           this.notifications.error(
             'Creation failed',
-            'The evaluation could not be created.',
+            this.getErrorMessage(
+              error,
+              'The evaluation could not be created.',
+            ),
           );
-        },
+
+          return throwError(
+            () => error,
+          );
+        }),
+      );
+  }
+
+  saveTask(
+    id: string,
+    input: NewEvaluation,
+  ): Observable<EvaluationTask> {
+    if (!this.store.hasTask(id)) {
+      const error =
+        new ApplicationError(
+          'not_found',
+          `${id} does not exist in the evaluation store.`,
+          `${id} could not be found.`,
+        );
+
+      this.notifications.error(
+        'Update failed',
+        error.userMessage,
+      );
+
+      return throwError(
+        () => error,
+      );
+    }
+
+    return this.store
+      .updateTask(id, input)
+      .pipe(
+        tap(() => {
+          this.notifications.success(
+            'Evaluation updated',
+            `${id} was updated successfully.`,
+          );
+        }),
+
+        catchError((error: unknown) => {
+          this.notifications.error(
+            'Update failed',
+            this.getErrorMessage(
+              error,
+              `${id} could not be updated.`,
+            ),
+          );
+
+          return throwError(
+            () => error,
+          );
+        }),
+      );
+  }
+
+  finishTask(
+    id: string,
+  ): Observable<EvaluationTask> {
+    if (!this.store.hasTask(id)) {
+      const error =
+        new ApplicationError(
+          'not_found',
+          `${id} does not exist in the evaluation store.`,
+          `${id} could not be found.`,
+        );
+
+      this.notifications.error(
+        'Completion failed',
+        error.userMessage,
+      );
+
+      return throwError(
+        () => error,
+      );
+    }
+
+    return this.store
+      .completeTask(id)
+      .pipe(
+        tap(() => {
+          this.notifications.success(
+            'Evaluation completed',
+            `${id} was marked as completed.`,
+          );
+        }),
+
+        catchError((error: unknown) => {
+          this.notifications.error(
+            'Completion failed',
+            this.getErrorMessage(
+              error,
+              `${id} could not be completed.`,
+            ),
+          );
+
+          return throwError(
+            () => error,
+          );
+        }),
+      );
+  }
+
+  removeTask(
+    id: string,
+  ): Observable<void> {
+    if (!this.store.hasTask(id)) {
+      const error =
+        new ApplicationError(
+          'not_found',
+          `${id} does not exist in the evaluation store.`,
+          `${id} could not be found.`,
+        );
+
+      this.notifications.error(
+        'Deletion failed',
+        error.userMessage,
+      );
+
+      return throwError(
+        () => error,
+      );
+    }
+
+    return this.store
+      .deleteTask(id)
+      .pipe(
+        tap(() => {
+          this.notifications.warning(
+            'Evaluation deleted',
+            `${id} was removed from the workflow.`,
+          );
+        }),
+
+        catchError((error: unknown) => {
+          this.notifications.error(
+            'Deletion failed',
+            this.getErrorMessage(
+              error,
+              `${id} could not be deleted.`,
+            ),
+          );
+
+          return throwError(
+            () => error,
+          );
+        }),
+      );
+  }
+
+  /*
+   * Compatibility commands for existing task-list,
+   * review, and task-details actions.
+   *
+   * The create and edit pages use the observable
+   * commands above so they can wait for confirmed
+   * API success before navigating.
+   */
+
+  addTask(
+    input: NewEvaluation,
+  ): void {
+    this.createTask(input)
+      .pipe(take(1))
+      .subscribe({
+        error: () => undefined,
       });
   }
 
@@ -88,55 +259,20 @@ export class EvaluationFacade {
       return false;
     }
 
-    this.store
-      .updateTask(id, input)
+    this.saveTask(id, input)
       .pipe(take(1))
       .subscribe({
-        next: () => {
-          this.notifications.success(
-            'Evaluation updated',
-            `${id} was updated successfully.`,
-          );
-        },
-
-        error: () => {
-          this.notifications.error(
-            'Update failed',
-            `${id} could not be updated.`,
-          );
-        },
+        error: () => undefined,
       });
 
     return true;
   }
 
   completeTask(id: string): void {
-    if (!this.store.hasTask(id)) {
-      this.notifications.error(
-        'Completion failed',
-        `${id} could not be found.`,
-      );
-
-      return;
-    }
-
-    this.store
-      .completeTask(id)
+    this.finishTask(id)
       .pipe(take(1))
       .subscribe({
-        next: () => {
-          this.notifications.success(
-            'Evaluation completed',
-            `${id} was marked as completed.`,
-          );
-        },
-
-        error: () => {
-          this.notifications.error(
-            'Completion failed',
-            `${id} could not be completed.`,
-          );
-        },
+        error: () => undefined,
       });
   }
 
@@ -150,25 +286,26 @@ export class EvaluationFacade {
       return false;
     }
 
-    this.store
-      .deleteTask(id)
+    this.removeTask(id)
       .pipe(take(1))
       .subscribe({
-        next: () => {
-          this.notifications.warning(
-            'Evaluation deleted',
-            `${id} was removed from the workflow.`,
-          );
-        },
-
-        error: () => {
-          this.notifications.error(
-            'Deletion failed',
-            `${id} could not be deleted.`,
-          );
-        },
+        error: () => undefined,
       });
 
     return true;
+  }
+
+  private getErrorMessage(
+    error: unknown,
+    fallback: string,
+  ): string {
+    if (
+      error instanceof
+      ApplicationError
+    ) {
+      return error.userMessage;
+    }
+
+    return fallback;
   }
 }
