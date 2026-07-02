@@ -146,3 +146,50 @@
     padding: 24px 16px;
   }
 }
+
+.sidebar__profile-content {
+  min-width: 0;
+  flex: 1;
+
+  strong,
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sidebar__role {
+  text-transform: capitalize;
+}
+
+.sidebar__logout {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  color: #aab4ca;
+  font-size: 18px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: #ffffff;
+    background: #273148;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #8d84ff;
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar__profile {
+    display: flex;
+    margin-top: 22px;
+  }
+}

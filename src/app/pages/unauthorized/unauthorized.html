@@ -1,0 +1,31 @@
+<section class="page-card unauthorized">
+  <div class="unauthorized__icon">!</div>
+
+  <span class="eyebrow">
+    Access restricted
+  </span>
+
+  <h1>You do not have permission</h1>
+
+  <p>
+    Your current
+    <strong>{{ auth.role() }}</strong>
+    role cannot access this section.
+  </p>
+
+  <div class="unauthorized__actions">
+    <a
+      class="primary-button"
+      routerLink="/"
+    >
+      Return to dashboard
+    </a>
+
+    <a
+      class="secondary-button"
+      routerLink="/tasks"
+    >
+      View evaluations
+    </a>
+  </div>
+</section>

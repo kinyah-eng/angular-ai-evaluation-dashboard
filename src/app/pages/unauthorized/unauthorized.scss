@@ -1,0 +1,36 @@
+.unauthorized {
+  display: grid;
+  max-width: 660px;
+  gap: 13px;
+  justify-items: start;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: #69758d;
+    line-height: 1.6;
+  }
+}
+
+.unauthorized__icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 8px;
+  place-items: center;
+  border-radius: 50%;
+  color: #b36a20;
+  font-size: 24px;
+  font-weight: 800;
+  background: #fff1dd;
+}
+
+.unauthorized__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
