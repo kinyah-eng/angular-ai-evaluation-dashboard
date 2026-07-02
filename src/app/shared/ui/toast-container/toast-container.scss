@@ -1,0 +1,146 @@
+:host {
+  position: relative;
+  z-index: 1000;
+}
+
+.toast-region {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  width: min(390px, calc(100vw - 32px));
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #dfe4ee;
+  border-left-width: 4px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0 16px 40px rgb(25 35 56 / 14%);
+  pointer-events: auto;
+  animation: toast-enter 180ms ease-out;
+}
+
+.toast--success {
+  border-left-color: #169b6b;
+
+  .toast__indicator {
+    color: #117452;
+    background: #e7f8f1;
+  }
+}
+
+.toast--error {
+  border-left-color: #d84640;
+
+  .toast__indicator {
+    color: #b9322d;
+    background: #fff0ef;
+  }
+}
+
+.toast--warning {
+  border-left-color: #d88a2a;
+
+  .toast__indicator {
+    color: #a56316;
+    background: #fff5e7;
+  }
+}
+
+.toast--info {
+  border-left-color: #5b4fe9;
+
+  .toast__indicator {
+    color: #4c42c7;
+    background: #efeeff;
+  }
+}
+
+.toast__indicator {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.toast__content {
+  min-width: 0;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #172033;
+    font-size: 13px;
+  }
+
+  p {
+    margin: 0;
+    color: #69758d;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+}
+
+.toast__dismiss {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: #748096;
+  font-size: 20px;
+  line-height: 1;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: #172033;
+    background: #f2f4f8;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #5b4fe9;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .toast-region {
+    top: 12px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

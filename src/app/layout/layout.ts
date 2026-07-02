@@ -5,9 +5,16 @@ import {
   RouterOutlet,
 } from '@angular/router';
 
+import { ToastContainer } from '../shared/ui/toast-container/toast-container';
+
 @Component({
   selector: 'app-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    ToastContainer,
+  ],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })

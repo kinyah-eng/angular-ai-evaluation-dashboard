@@ -1,0 +1,57 @@
+<section
+  class="toast-region"
+  aria-label="Application notifications"
+  aria-live="polite"
+  aria-relevant="additions removals"
+>
+  @for (
+    notification of
+      notificationService.notifications();
+    track notification.id
+  ) {
+    <article
+      class="toast toast--{{ notification.level }}"
+      [attr.role]="
+        notificationRole(notification.level)
+      "
+    >
+      <div class="toast__indicator">
+        @switch (notification.level) {
+          @case ('success') {
+            ✓
+          }
+
+          @case ('error') {
+            !
+          }
+
+          @case ('warning') {
+            ⚠
+          }
+
+          @default {
+            i
+          }
+        }
+      </div>
+
+      <div class="toast__content">
+        <strong>{{ notification.title }}</strong>
+        <p>{{ notification.message }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="toast__dismiss"
+        aria-label="Dismiss notification"
+        (click)="
+          notificationService.dismiss(
+            notification.id
+          )
+        "
+      >
+        ×
+      </button>
+    </article>
+  }
+</section>
