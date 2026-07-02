@@ -16,8 +16,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 
-import { EvaluationStatus } from '../../core/evaluation-task';
-import { TaskStore } from '../../core/task-store';
+import { EvaluationStatus } from '../../data-access/models/evaluation-task.model';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-edit-evaluation-page',
@@ -27,7 +27,7 @@ import { TaskStore } from '../../core/task-store';
 })
 export class EditEvaluationPage {
   private readonly formBuilder = inject(FormBuilder);
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -56,7 +56,7 @@ export class EditEvaluationPage {
 
     this.taskId = taskId;
 
-    this.taskStore
+    this.evaluationFacade
       .getTask$(taskId)
       .pipe(
         take(1),
@@ -85,7 +85,7 @@ export class EditEvaluationPage {
       return;
     }
 
-    const updated = this.taskStore.updateTask(
+    const updated = this.evaluationFacade.updateTask(
       this.taskId,
       this.evaluationForm.getRawValue(),
     );

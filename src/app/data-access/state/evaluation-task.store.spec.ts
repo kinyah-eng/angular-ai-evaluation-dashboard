@@ -7,10 +7,10 @@ import {
   vi,
 } from 'vitest';
 
-import { TaskStore } from './task-store';
+import { EvaluationTaskStore } from './evaluation-task.store';
 
-describe('TaskStore', () => {
-  let store: TaskStore;
+describe('EvaluationTaskStore', () => {
+  let store: EvaluationTaskStore;
   let storage: Record<string, string>;
 
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe('TaskStore', () => {
       }),
     });
 
-    store = new TaskStore();
+    store = new EvaluationTaskStore();
   });
 
   it('loads the initial evaluation tasks', async () => {

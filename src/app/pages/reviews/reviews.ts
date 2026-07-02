@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { map } from 'rxjs';
 
-import { TaskStore } from '../../core/task-store';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-reviews-page',
@@ -11,15 +11,15 @@ import { TaskStore } from '../../core/task-store';
   styleUrls: ['../page.scss', './reviews.scss'],
 })
 export class ReviewsPage {
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
 
-  protected readonly pendingReviews$ = this.taskStore.tasks$.pipe(
+  protected readonly pendingReviews$ = this.evaluationFacade.tasks$.pipe(
     map((tasks) =>
       tasks.filter((task) => task.status !== 'Completed'),
     ),
   );
 
   protected completeReview(id: string): void {
-    this.taskStore.completeTask(id);
+    this.evaluationFacade.completeTask(id);
   }
 }

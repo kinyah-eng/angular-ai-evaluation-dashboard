@@ -6,8 +6,8 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { EvaluationStatus } from '../../core/evaluation-task';
-import { TaskStore } from '../../core/task-store';
+import { EvaluationStatus } from '../../data-access/models/evaluation-task.model';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-new-evaluation-page',
@@ -17,7 +17,7 @@ import { TaskStore } from '../../core/task-store';
 })
 export class NewEvaluationPage {
   private readonly formBuilder = inject(FormBuilder);
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
   private readonly router = inject(Router);
 
   protected readonly evaluationForm =
@@ -34,7 +34,7 @@ export class NewEvaluationPage {
       return;
     }
 
-    this.taskStore.addTask(this.evaluationForm.getRawValue());
+    this.evaluationFacade.addTask(this.evaluationForm.getRawValue());
     void this.router.navigate(['/tasks']);
   }
 }

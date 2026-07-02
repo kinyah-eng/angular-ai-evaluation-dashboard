@@ -6,7 +6,7 @@ import {
   EvaluationStatusKey,
   EvaluationTask,
   NewEvaluation,
-} from './evaluation-task';
+} from '../models/evaluation-task.model';
 
 const STORAGE_KEY = 'evalops-evaluation-tasks';
 
@@ -52,7 +52,7 @@ const INITIAL_TASKS: EvaluationTask[] = [
 @Injectable({
   providedIn: 'root',
 })
-export class TaskStore {
+export class EvaluationTaskStore {
   private readonly tasksSubject =
     new BehaviorSubject<EvaluationTask[]>(this.loadTasks());
 

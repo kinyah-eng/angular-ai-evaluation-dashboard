@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { map } from 'rxjs';
 
-import { TaskStore } from '../../core/task-store';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-analytics-page',
@@ -11,9 +11,9 @@ import { TaskStore } from '../../core/task-store';
   styleUrls: ['../page.scss', './analytics.scss'],
 })
 export class AnalyticsPage {
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
 
-  protected readonly analytics$ = this.taskStore.tasks$.pipe(
+  protected readonly analytics$ = this.evaluationFacade.tasks$.pipe(
     map((tasks) => {
       const completed = tasks.filter(
         (task) => task.status === 'Completed',

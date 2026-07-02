@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { map, shareReplay } from 'rxjs';
 
-import { TaskStore } from '../../core/task-store';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 interface Metric {
   label: string;
@@ -19,7 +19,7 @@ interface Metric {
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
 
   protected readonly currentDate = new Intl.DateTimeFormat('en-US', {
     month: 'long',
@@ -27,12 +27,12 @@ export class Dashboard {
     year: 'numeric',
   }).format(new Date());
 
-  protected readonly recentTasks$ = this.taskStore.tasks$.pipe(
+  protected readonly recentTasks$ = this.evaluationFacade.tasks$.pipe(
     map((tasks) => tasks.slice(0, 4)),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
-  protected readonly metrics$ = this.taskStore.tasks$.pipe(
+  protected readonly metrics$ = this.evaluationFacade.tasks$.pipe(
     map((tasks): Metric[] => {
       const completed = tasks.filter(
         (task) => task.status === 'Completed',

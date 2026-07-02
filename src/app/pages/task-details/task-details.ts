@@ -11,7 +11,7 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { TaskStore } from '../../core/task-store';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-task-details-page',
@@ -22,16 +22,16 @@ import { TaskStore } from '../../core/task-store';
 export class TaskDetailsPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
 
   protected readonly task$ = this.route.paramMap.pipe(
     map((parameters) => parameters.get('id') ?? ''),
-    switchMap((id) => this.taskStore.getTask$(id)),
+    switchMap((id) => this.evaluationFacade.getTask$(id)),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
   protected completeTask(id: string): void {
-    this.taskStore.completeTask(id);
+    this.evaluationFacade.completeTask(id);
   }
 
   protected deleteTask(id: string): void {
@@ -43,7 +43,7 @@ export class TaskDetailsPage {
       return;
     }
 
-    this.taskStore.deleteTask(id);
+    this.evaluationFacade.deleteTask(id);
     void this.router.navigate(['/tasks']);
   }
 }

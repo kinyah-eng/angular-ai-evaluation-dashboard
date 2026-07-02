@@ -11,8 +11,8 @@ import {
   startWith,
 } from 'rxjs';
 
-import { EvaluationStatus } from '../../core/evaluation-task';
-import { TaskStore } from '../../core/task-store';
+import { EvaluationStatus } from '../../data-access/models/evaluation-task.model';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-tasks-page',
@@ -21,7 +21,7 @@ import { TaskStore } from '../../core/task-store';
   styleUrls: ['../page.scss', './tasks.scss'],
 })
 export class TasksPage {
-  private readonly taskStore = inject(TaskStore);
+  private readonly evaluationFacade = inject(EvaluationFacade);
 
   protected readonly searchControl = new FormControl('', {
     nonNullable: true,
@@ -34,7 +34,7 @@ export class TasksPage {
   });
 
   protected readonly filteredTasks$ = combineLatest([
-    this.taskStore.tasks$,
+    this.evaluationFacade.tasks$,
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
       debounceTime(250),
@@ -67,6 +67,6 @@ export class TasksPage {
   );
 
   protected completeTask(id: string): void {
-    this.taskStore.completeTask(id);
+    this.evaluationFacade.completeTask(id);
   }
 }
