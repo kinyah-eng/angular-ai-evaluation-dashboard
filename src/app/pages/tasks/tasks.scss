@@ -96,3 +96,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+.task-row {
+  grid-template-columns:
+    minmax(220px, 1fr)
+    130px
+    100px
+    minmax(150px, auto);
+}
+
+.task-row__main h2 a {
+  color: #172033;
+  text-decoration: none;
+
+  &:hover {
+    color: #5b4fe9;
+    text-decoration: underline;
+  }
+}
+
+.task-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}

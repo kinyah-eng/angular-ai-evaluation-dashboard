@@ -1,0 +1,92 @@
+@if (loading) {
+  <section class="page-card">
+    <p>Loading evaluation…</p>
+  </section>
+} @else if (notFound) {
+  <section class="page-card not-found">
+    <h1>Evaluation not found</h1>
+    <p>The requested evaluation cannot be edited.</p>
+    <a class="primary-button" routerLink="/tasks">
+      Return to tasks
+    </a>
+  </section>
+} @else {
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">{{ taskId }}</span>
+      <h1>Edit Evaluation</h1>
+      <p>Update the task assignment, reviewer, or status.</p>
+    </div>
+
+    <a
+      class="secondary-button"
+      [routerLink]="['/tasks', taskId]"
+    >
+      Cancel
+    </a>
+  </header>
+
+  <form
+    class="page-card evaluation-form"
+    [formGroup]="evaluationForm"
+    (ngSubmit)="submit()"
+  >
+    <label>
+      <span>Task title</span>
+      <input type="text" formControlName="title" />
+
+      @if (
+        evaluationForm.controls.title.touched &&
+        evaluationForm.controls.title.invalid
+      ) {
+        <small>
+          Enter a title containing at least five characters.
+        </small>
+      }
+    </label>
+
+    <div class="form-grid">
+      <label>
+        <span>Category</span>
+        <select formControlName="category">
+          <option>Code Review</option>
+          <option>Debugging</option>
+          <option>Maintainability</option>
+          <option>Accessibility</option>
+          <option>Security</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Status</span>
+        <select formControlName="status">
+          <option>In Review</option>
+          <option>Needs Attention</option>
+          <option>Completed</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      <span>Reviewer</span>
+      <input type="text" formControlName="reviewer" />
+    </label>
+
+    <div class="form-actions">
+      <a
+        class="secondary-button"
+        [routerLink]="['/tasks', taskId]"
+      >
+        Cancel
+      </a>
+
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="evaluationForm.invalid"
+      >
+        Save changes
+      </button>
+    </div>
+  </form>
+}

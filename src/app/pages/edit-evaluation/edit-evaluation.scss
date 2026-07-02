@@ -1,0 +1,52 @@
+.evaluation-form {
+  display: grid;
+  max-width: 760px;
+  gap: 22px;
+
+  label {
+    display: grid;
+    gap: 7px;
+    color: #4f5b71;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  input,
+  select {
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #dce1eb;
+    border-radius: 8px;
+    color: #172033;
+    background: #ffffff;
+  }
+
+  small {
+    color: #c2413b;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.not-found {
+  display: grid;
+  max-width: 620px;
+  gap: 12px;
+  justify-items: start;
+}
+
+@media (max-width: 620px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

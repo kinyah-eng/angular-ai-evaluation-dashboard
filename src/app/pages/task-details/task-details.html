@@ -1,0 +1,125 @@
+@if (task$ | async; as task) {
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">{{ task.id }}</span>
+      <h1>{{ task.title }}</h1>
+      <p>Review the assignment information and available actions.</p>
+    </div>
+
+    <div class="header-actions">
+      <a
+        class="secondary-button"
+        [routerLink]="['/tasks', task.id, 'edit']"
+      >
+        Edit evaluation
+      </a>
+
+      @if (task.status !== 'Completed') {
+        <button
+          class="primary-button"
+          type="button"
+          (click)="completeTask(task.id)"
+        >
+          Mark complete
+        </button>
+      }
+    </div>
+  </header>
+
+  <section class="details-grid">
+    <article class="page-card details-card">
+      <div class="details-card__header">
+        <div>
+          <span>Evaluation status</span>
+          <strong class="status status--{{ task.statusKey }}">
+            {{ task.status }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Quality score</span>
+          <strong class="quality-score">
+            {{ task.qualityScore || 'Not scored' }}
+            @if (task.qualityScore) {
+              %
+            }
+          </strong>
+        </div>
+      </div>
+
+      <dl>
+        <div>
+          <dt>Task identifier</dt>
+          <dd>{{ task.id }}</dd>
+        </div>
+
+        <div>
+          <dt>Category</dt>
+          <dd>{{ task.category }}</dd>
+        </div>
+
+        <div>
+          <dt>Assigned reviewer</dt>
+          <dd>{{ task.reviewer }}</dd>
+        </div>
+
+        <div>
+          <dt>Current status</dt>
+          <dd>{{ task.status }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <aside class="page-card activity-card">
+      <h2>Evaluation workflow</h2>
+
+      <ol>
+        <li class="activity-card__completed">
+          <strong>Task created</strong>
+          <span>The evaluation was added to the workflow.</span>
+        </li>
+
+        <li
+          [class.activity-card__completed]="
+            task.status === 'Completed'
+          "
+        >
+          <strong>Reviewer analysis</strong>
+          <span>The assigned reviewer analyzes the submission.</span>
+        </li>
+
+        <li
+          [class.activity-card__completed]="
+            task.status === 'Completed'
+          "
+        >
+          <strong>Quality decision</strong>
+          <span>The evaluation receives its final status.</span>
+        </li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="danger-zone">
+    <div>
+      <h2>Delete evaluation</h2>
+      <p>This action removes the task from browser storage.</p>
+    </div>
+
+    <button
+      class="danger-button"
+      type="button"
+      (click)="deleteTask(task.id)"
+    >
+      Delete evaluation
+    </button>
+  </section>
+} @else {
+  <section class="page-card not-found">
+    <h1>Evaluation not found</h1>
+    <p>The requested evaluation does not exist or was deleted.</p>
+    <a class="primary-button" routerLink="/tasks">
+      Return to tasks
+    </a>
+  </section>
+}

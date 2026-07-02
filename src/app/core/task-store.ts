@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 
 import {
   EvaluationStatus,
@@ -58,6 +58,12 @@ export class TaskStore {
 
   readonly tasks$ = this.tasksSubject.asObservable();
 
+  getTask$(id: string): Observable<EvaluationTask | undefined> {
+    return this.tasks$.pipe(
+      map((tasks) => tasks.find((task) => task.id === id)),
+    );
+  }
+
   addTask(input: NewEvaluation): void {
     const currentTasks = this.tasksSubject.value;
 
@@ -80,6 +86,37 @@ export class TaskStore {
     this.updateTasks([newTask, ...currentTasks]);
   }
 
+  updateTask(id: string, input: NewEvaluation): boolean {
+    let taskFound = false;
+
+    const updatedTasks = this.tasksSubject.value.map((task) => {
+      if (task.id !== id) {
+        return task;
+      }
+
+      taskFound = true;
+
+      return {
+        ...task,
+        title: input.title.trim(),
+        category: input.category,
+        reviewer: input.reviewer.trim(),
+        status: input.status,
+        statusKey: this.getStatusKey(input.status),
+        qualityScore:
+          input.status === 'Completed'
+            ? task.qualityScore || 95
+            : task.qualityScore,
+      };
+    });
+
+    if (taskFound) {
+      this.updateTasks(updatedTasks);
+    }
+
+    return taskFound;
+  }
+
   completeTask(id: string): void {
     const updatedTasks = this.tasksSubject.value.map((task) =>
       task.id === id
@@ -95,13 +132,25 @@ export class TaskStore {
     this.updateTasks(updatedTasks);
   }
 
+  deleteTask(id: string): boolean {
+    const currentTasks = this.tasksSubject.value;
+    const updatedTasks = currentTasks.filter((task) => task.id !== id);
+
+    if (updatedTasks.length === currentTasks.length) {
+      return false;
+    }
+
+    this.updateTasks(updatedTasks);
+    return true;
+  }
+
   private updateTasks(tasks: EvaluationTask[]): void {
     this.tasksSubject.next(tasks);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     } catch {
-      // The application still works when browser storage is unavailable.
+      // Continue without persistence when browser storage is unavailable.
     }
   }
 
@@ -113,7 +162,7 @@ export class TaskStore {
         return JSON.parse(storedTasks) as EvaluationTask[];
       }
     } catch {
-      // Fall back to the initial demonstration data.
+      // Fall back to demonstration data.
     }
 
     return INITIAL_TASKS;

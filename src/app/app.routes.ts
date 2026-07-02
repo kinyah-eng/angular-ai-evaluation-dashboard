@@ -23,6 +23,22 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'tasks/:id/edit',
+        title: 'Edit Evaluation | EvalOps',
+        loadComponent: () =>
+          import('./pages/edit-evaluation/edit-evaluation').then(
+            (component) => component.EditEvaluationPage,
+          ),
+      },
+      {
+        path: 'tasks/:id',
+        title: 'Evaluation Details | EvalOps',
+        loadComponent: () =>
+          import('./pages/task-details/task-details').then(
+            (component) => component.TaskDetailsPage,
+          ),
+      },
+      {
         path: 'tasks',
         title: 'Evaluation Tasks | EvalOps',
         loadComponent: () =>

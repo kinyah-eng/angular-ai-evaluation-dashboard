@@ -42,7 +42,13 @@
         <article class="task-row">
           <div class="task-row__main">
             <span>{{ task.id }}</span>
-            <h2>{{ task.title }}</h2>
+
+            <h2>
+              <a [routerLink]="['/tasks', task.id]">
+                {{ task.title }}
+              </a>
+            </h2>
+
             <p>{{ task.category }} · {{ task.reviewer }}</p>
           </div>
 
@@ -57,15 +63,24 @@
             }
           </strong>
 
-          @if (task.status !== 'Completed') {
-            <button
+          <div class="task-actions">
+            <a
               class="secondary-button"
-              type="button"
-              (click)="completeTask(task.id)"
+              [routerLink]="['/tasks', task.id]"
             >
-              Mark complete
-            </button>
-          }
+              Open
+            </a>
+
+            @if (task.status !== 'Completed') {
+              <button
+                class="secondary-button"
+                type="button"
+                (click)="completeTask(task.id)"
+              >
+                Complete
+              </button>
+            }
+          </div>
         </article>
       } @empty {
         <div class="empty-state">
