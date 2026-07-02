@@ -470,3 +470,89 @@ table {
     grid-template-columns: 1fr;
   }
 }
+
+/* Responsive task table improvements */
+table {
+  table-layout: fixed;
+
+  th:nth-child(1) {
+    width: 32%;
+  }
+
+  th:nth-child(2) {
+    width: 17%;
+  }
+
+  th:nth-child(3) {
+    width: 18%;
+  }
+
+  th:nth-child(4) {
+    width: 17%;
+  }
+
+  th:nth-child(5) {
+    width: 16%;
+  }
+
+  td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 980px) {
+  table {
+    th:nth-child(2),
+    td:nth-child(2) {
+      display: none;
+    }
+
+    th:nth-child(1) {
+      width: 34%;
+    }
+
+    th:nth-child(3) {
+      width: 24%;
+    }
+
+    th:nth-child(4) {
+      width: 22%;
+    }
+
+    th:nth-child(5) {
+      width: 20%;
+    }
+  }
+}
+
+@media (max-width: 680px) {
+  table {
+    min-width: 0;
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      display: none;
+    }
+
+    th:nth-child(1) {
+      width: 46%;
+    }
+
+    th:nth-child(4) {
+      width: 29%;
+    }
+
+    th:nth-child(5) {
+      width: 25%;
+    }
+  }
+
+  .panel--tasks {
+    padding: 16px;
+  }
+
+  .panel__header {
+    flex-direction: column;
+  }
+}
