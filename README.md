@@ -1,59 +1,200 @@
-# AngularAiEvaluationDashboard
+# EvalOps — Angular AI Evaluation Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.5.
+EvalOps is a responsive Angular application for managing AI evaluation tasks, reviewer workflows, quality scores, and performance analytics.
 
-## Development server
+## Live Demo
 
-To start a local development server, run:
+https://kinyah-eng.github.io/angular-ai-evaluation-dashboard/
 
-```bash
-ng serve
+## Project Overview
+
+This project demonstrates how Angular, RxJS, TypeScript, Reactive Forms, and scalable SCSS can be used to build a maintainable front-end application for AI quality-evaluation workflows.
+
+The application uses realistic demonstration data and browser-based persistence. It does not currently connect to a production backend.
+
+## Features
+
+- Responsive evaluation dashboard
+- Create, view, edit, complete, and delete evaluations
+- Reactive task search with debouncing
+- Status-based task filtering
+- Reviewer action queue
+- Dynamic quality and completion metrics
+- Evaluation details pages
+- Typed Angular Reactive Forms
+- Form validation and error feedback
+- Browser persistence using `localStorage`
+- Lazy-loaded standalone routes
+- Responsive SCSS architecture
+- Vitest unit tests
+- GitHub Actions continuous integration
+- GitHub Pages deployment
+
+## Angular and RxJS Concepts
+
+The project demonstrates:
+
+- Standalone Angular components
+- Angular Router
+- Lazy-loaded routes
+- Reactive Forms
+- Strict TypeScript models
+- Dependency injection using `inject()`
+- `BehaviorSubject`
+- `combineLatest`
+- `switchMap`
+- `map`
+- `debounceTime`
+- `distinctUntilChanged`
+- `startWith`
+- `shareReplay`
+- `takeUntilDestroyed`
+- `AsyncPipe`
+- Angular control-flow syntax
+- Dynamic class and style binding
+
+## Technology Stack
+
+- Angular 22
+- TypeScript
+- RxJS
+- SCSS/SASS
+- Angular Reactive Forms
+- Angular Router
+- Vitest
+- GitHub Actions
+- GitHub Pages
+
+## Application Routes
+
+| Route | Purpose |
+|---|---|
+| `#/` | Performance dashboard |
+| `#/tasks` | Search and manage evaluations |
+| `#/tasks/new` | Create a new evaluation |
+| `#/tasks/:id` | View evaluation details |
+| `#/tasks/:id/edit` | Edit an evaluation |
+| `#/reviews` | Process pending reviews |
+| `#/analytics` | View reactive performance metrics |
+| `#/settings` | Manage application preferences |
+
+## Project Structure
+
+```text
+src/app/
+├── core/
+│   ├── evaluation-task.ts
+│   ├── task-store.ts
+│   └── task-store.spec.ts
+├── layout/
+│   ├── layout.ts
+│   ├── layout.html
+│   └── layout.scss
+├── pages/
+│   ├── dashboard/
+│   ├── tasks/
+│   ├── task-details/
+│   ├── new-evaluation/
+│   ├── edit-evaluation/
+│   ├── reviews/
+│   ├── analytics/
+│   └── settings/
+├── app.config.ts
+├── app.routes.ts
+└── app.ts
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## State Management
 
-## Code scaffolding
+The application uses a lightweight RxJS state-management service built around `BehaviorSubject`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Components receive application state through observable streams and `AsyncPipe`. Derived values such as task totals, completion rates, filtered task lists, and average quality scores are calculated reactively.
 
-```bash
-ng generate component component-name
-```
+## Local Development
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Requirements
 
-```bash
-ng generate --help
-```
+- Node.js 24.15.0
+- npm
 
-## Building
-
-To build the project run:
+### Clone the repository
 
 ```bash
-ng build
+git clone https://github.com/kinyah-eng/angular-ai-evaluation-dashboard.git
+cd angular-ai-evaluation-dashboard
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Install dependencies
 
 ```bash
-ng test
+npm ci
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+### Start the development server
 
 ```bash
-ng e2e
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Open:
 
-## Additional Resources
+```text
+http://localhost:4200
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Testing
+
+Run the unit tests:
+
+```bash
+npm test -- --watch=false
+```
+
+## Production Build
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+## Data Persistence
+
+Evaluation tasks and application settings are stored in browser `localStorage`.
+
+This allows created and edited tasks to remain available after refreshing the page. Clearing browser storage resets the locally stored information.
+
+## Continuous Integration and Deployment
+
+Every push to the `main` branch automatically:
+
+1. Installs locked dependencies.
+2. Runs the unit tests.
+3. Creates a production build.
+4. Deploys the successful build to GitHub Pages.
+
+Pull requests run the test and build stages without deploying.
+
+## Future Improvements
+
+- REST API integration
+- Authentication
+- Role-based authorization
+- Server-side persistence
+- Pagination
+- Audit history
+- Interactive charts
+- End-to-end testing
+- Dark mode
+- Expanded accessibility testing
+
+## Author
+
+**Samuel Kamande**
+
+- GitHub: https://github.com/kinyah-eng
+- Location: Nairobi, Kenya
+
+## License
+
+This project is available under the MIT License.
