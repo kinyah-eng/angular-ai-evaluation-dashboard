@@ -1,5 +1,9 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import {
+  BehaviorSubject,
+  map,
+  Observable,
+} from 'rxjs';
 
 import {
   EvaluationStatus,
@@ -7,8 +11,7 @@ import {
   EvaluationTask,
   NewEvaluation,
 } from '../models/evaluation-task.model';
-
-const STORAGE_KEY = 'evalops-evaluation-tasks';
+import { EVALUATION_TASK_REPOSITORY } from '../repositories/evaluation-task.repository';
 
 const INITIAL_TASKS: EvaluationTask[] = [
   {
@@ -53,14 +56,24 @@ const INITIAL_TASKS: EvaluationTask[] = [
   providedIn: 'root',
 })
 export class EvaluationTaskStore {
+  private readonly repository = inject(
+    EVALUATION_TASK_REPOSITORY,
+  );
+
   private readonly tasksSubject =
-    new BehaviorSubject<EvaluationTask[]>(this.loadTasks());
+    new BehaviorSubject<EvaluationTask[]>(
+      this.repository.load() ?? INITIAL_TASKS,
+    );
 
   readonly tasks$ = this.tasksSubject.asObservable();
 
-  getTask$(id: string): Observable<EvaluationTask | undefined> {
+  getTask$(
+    id: string,
+  ): Observable<EvaluationTask | undefined> {
     return this.tasks$.pipe(
-      map((tasks) => tasks.find((task) => task.id === id)),
+      map((tasks) =>
+        tasks.find((task) => task.id === id),
+      ),
     );
   }
 
@@ -68,10 +81,13 @@ export class EvaluationTaskStore {
     const currentTasks = this.tasksSubject.value;
 
     const existingNumbers = currentTasks
-      .map((task) => Number(task.id.replace(/\D/g, '')))
+      .map((task) =>
+        Number(task.id.replace(/\D/g, '')),
+      )
       .filter((value) => Number.isFinite(value));
 
-    const nextNumber = Math.max(1042, ...existingNumbers) + 1;
+    const nextNumber =
+      Math.max(1042, ...existingNumbers) + 1;
 
     const newTask: EvaluationTask = {
       id: `EV-${nextNumber}`,
@@ -80,35 +96,43 @@ export class EvaluationTaskStore {
       reviewer: input.reviewer.trim(),
       status: input.status,
       statusKey: this.getStatusKey(input.status),
-      qualityScore: input.status === 'Completed' ? 95 : 0,
+      qualityScore:
+        input.status === 'Completed' ? 95 : 0,
     };
 
-    this.updateTasks([newTask, ...currentTasks]);
+    this.updateTasks([
+      newTask,
+      ...currentTasks,
+    ]);
   }
 
-  updateTask(id: string, input: NewEvaluation): boolean {
+  updateTask(
+    id: string,
+    input: NewEvaluation,
+  ): boolean {
     let taskFound = false;
 
-    const updatedTasks = this.tasksSubject.value.map((task) => {
-      if (task.id !== id) {
-        return task;
-      }
+    const updatedTasks =
+      this.tasksSubject.value.map((task) => {
+        if (task.id !== id) {
+          return task;
+        }
 
-      taskFound = true;
+        taskFound = true;
 
-      return {
-        ...task,
-        title: input.title.trim(),
-        category: input.category,
-        reviewer: input.reviewer.trim(),
-        status: input.status,
-        statusKey: this.getStatusKey(input.status),
-        qualityScore:
-          input.status === 'Completed'
-            ? task.qualityScore || 95
-            : task.qualityScore,
-      };
-    });
+        return {
+          ...task,
+          title: input.title.trim(),
+          category: input.category,
+          reviewer: input.reviewer.trim(),
+          status: input.status,
+          statusKey: this.getStatusKey(input.status),
+          qualityScore:
+            input.status === 'Completed'
+              ? task.qualityScore || 95
+              : task.qualityScore,
+        };
+      });
 
     if (taskFound) {
       this.updateTasks(updatedTasks);
@@ -118,25 +142,32 @@ export class EvaluationTaskStore {
   }
 
   completeTask(id: string): void {
-    const updatedTasks = this.tasksSubject.value.map((task) =>
-      task.id === id
-        ? {
-            ...task,
-            status: 'Completed' as const,
-            statusKey: 'completed' as const,
-            qualityScore: task.qualityScore || 95,
-          }
-        : task,
-    );
+    const updatedTasks =
+      this.tasksSubject.value.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              status: 'Completed' as const,
+              statusKey: 'completed' as const,
+              qualityScore:
+                task.qualityScore || 95,
+            }
+          : task,
+      );
 
     this.updateTasks(updatedTasks);
   }
 
   deleteTask(id: string): boolean {
     const currentTasks = this.tasksSubject.value;
-    const updatedTasks = currentTasks.filter((task) => task.id !== id);
 
-    if (updatedTasks.length === currentTasks.length) {
+    const updatedTasks = currentTasks.filter(
+      (task) => task.id !== id,
+    );
+
+    if (
+      updatedTasks.length === currentTasks.length
+    ) {
       return false;
     }
 
@@ -144,36 +175,23 @@ export class EvaluationTaskStore {
     return true;
   }
 
-  private updateTasks(tasks: EvaluationTask[]): void {
+  private updateTasks(
+    tasks: EvaluationTask[],
+  ): void {
     this.tasksSubject.next(tasks);
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    } catch {
-      // Continue without persistence when browser storage is unavailable.
-    }
+    this.repository.save(tasks);
   }
 
-  private loadTasks(): EvaluationTask[] {
-    try {
-      const storedTasks = localStorage.getItem(STORAGE_KEY);
-
-      if (storedTasks) {
-        return JSON.parse(storedTasks) as EvaluationTask[];
-      }
-    } catch {
-      // Fall back to demonstration data.
-    }
-
-    return INITIAL_TASKS;
-  }
-
-  private getStatusKey(status: EvaluationStatus): EvaluationStatusKey {
+  private getStatusKey(
+    status: EvaluationStatus,
+  ): EvaluationStatusKey {
     switch (status) {
       case 'Completed':
         return 'completed';
+
       case 'Needs Attention':
         return 'attention';
+
       default:
         return 'review';
     }
