@@ -177,3 +177,42 @@ dl {
     grid-template-columns: 1fr;
   }
 }
+
+.action-error-banner {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 13px 14px;
+  border: 1px solid #f0c3c0;
+  border-radius: 9px;
+  color: #a9322d;
+  background: #fff3f2;
+
+  strong {
+    font-size: 13px;
+  }
+
+  span {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.primary-button:disabled,
+.danger-button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  .button-spinner {
+    border-color:
+      rgb(200 55 49 / 35%);
+    border-top-color: #c83731;
+  }
+}

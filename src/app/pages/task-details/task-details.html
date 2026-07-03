@@ -1,46 +1,114 @@
 @if (task$ | async; as task) {
   <header class="page-header">
     <div>
-      <span class="eyebrow">{{ task.id }}</span>
+      <span class="eyebrow">
+        {{ task.id }}
+      </span>
+
       <h1>{{ task.title }}</h1>
-      <p>Review the assignment information and available actions.</p>
+
+      <p>
+        Review the assignment
+        information and available
+        actions.
+      </p>
     </div>
 
     <div class="header-actions">
       <a
         class="secondary-button"
-        [routerLink]="['/tasks', task.id, 'edit']"
+        [routerLink]="[
+          '/tasks',
+          task.id,
+          'edit'
+        ]"
       >
         Edit evaluation
       </a>
 
-      @if (task.status !== 'Completed') {
+      @if (
+        task.status !==
+        'Completed'
+      ) {
         <button
           class="primary-button"
           type="button"
-          (click)="completeTask(task.id)"
+          [disabled]="actionPending()"
+          (click)="
+            completeTask(task.id)
+          "
         >
-          Mark complete
+          @if (
+            isCompleting(task.id)
+          ) {
+            <span
+              class="button-spinner"
+              aria-hidden="true"
+            ></span>
+
+            Completing…
+          } @else {
+            Mark complete
+          }
         </button>
       }
     </div>
   </header>
 
+  @if (
+    actionError();
+    as error
+  ) {
+    <div
+      class="action-error-banner"
+      role="alert"
+    >
+      <strong>
+        Action unsuccessful
+      </strong>
+
+      <span>{{ error }}</span>
+    </div>
+  }
+
   <section class="details-grid">
-    <article class="page-card details-card">
-      <div class="details-card__header">
+    <article
+      class="page-card details-card"
+    >
+      <div
+        class="details-card__header"
+      >
         <div>
-          <span>Evaluation status</span>
-          <strong class="status status--{{ task.statusKey }}">
+          <span>
+            Evaluation status
+          </span>
+
+          <strong
+            class="
+              status
+              status--{{
+                task.statusKey
+              }}
+            "
+          >
             {{ task.status }}
           </strong>
         </div>
 
         <div>
           <span>Quality score</span>
-          <strong class="quality-score">
-            {{ task.qualityScore || 'Not scored' }}
-            @if (task.qualityScore) {
+
+          <strong
+            class="quality-score"
+          >
+            {{
+              task.qualityScore ||
+                'Not scored'
+            }}
+
+            @if (
+              task.qualityScore
+            ) {
               %
             }
           </strong>
@@ -55,46 +123,83 @@
 
         <div>
           <dt>Category</dt>
-          <dd>{{ task.category }}</dd>
+          <dd>
+            {{ task.category }}
+          </dd>
         </div>
 
         <div>
-          <dt>Assigned reviewer</dt>
-          <dd>{{ task.reviewer }}</dd>
+          <dt>
+            Assigned reviewer
+          </dt>
+          <dd>
+            {{ task.reviewer }}
+          </dd>
         </div>
 
         <div>
           <dt>Current status</dt>
-          <dd>{{ task.status }}</dd>
+          <dd>
+            {{ task.status }}
+          </dd>
         </div>
       </dl>
     </article>
 
-    <aside class="page-card activity-card">
+    <aside
+      class="
+        page-card
+        activity-card
+      "
+    >
       <h2>Evaluation workflow</h2>
 
       <ol>
-        <li class="activity-card__completed">
-          <strong>Task created</strong>
-          <span>The evaluation was added to the workflow.</span>
+        <li
+          class="
+            activity-card__completed
+          "
+        >
+          <strong>
+            Task created
+          </strong>
+
+          <span>
+            The evaluation was added
+            to the workflow.
+          </span>
         </li>
 
         <li
           [class.activity-card__completed]="
-            task.status === 'Completed'
+            task.status ===
+            'Completed'
           "
         >
-          <strong>Reviewer analysis</strong>
-          <span>The assigned reviewer analyzes the submission.</span>
+          <strong>
+            Reviewer analysis
+          </strong>
+
+          <span>
+            The assigned reviewer
+            analyzes the submission.
+          </span>
         </li>
 
         <li
           [class.activity-card__completed]="
-            task.status === 'Completed'
+            task.status ===
+            'Completed'
           "
         >
-          <strong>Quality decision</strong>
-          <span>The evaluation receives its final status.</span>
+          <strong>
+            Quality decision
+          </strong>
+
+          <span>
+            The evaluation receives
+            its final status.
+          </span>
         </li>
       </ol>
     </aside>
@@ -103,22 +208,51 @@
   <section class="danger-zone">
     <div>
       <h2>Delete evaluation</h2>
-      <p>This action removes the task from browser storage.</p>
+
+      <p>
+        This action permanently
+        removes the evaluation from
+        the API-backed workflow.
+      </p>
     </div>
 
     <button
       class="danger-button"
       type="button"
+      [disabled]="actionPending()"
       (click)="deleteTask(task.id)"
     >
-      Delete evaluation
+      @if (
+        isDeleting(task.id)
+      ) {
+        <span
+          class="button-spinner"
+          aria-hidden="true"
+        ></span>
+
+        Deleting…
+      } @else {
+        Delete evaluation
+      }
     </button>
   </section>
 } @else {
-  <section class="page-card not-found">
-    <h1>Evaluation not found</h1>
-    <p>The requested evaluation does not exist or was deleted.</p>
-    <a class="primary-button" routerLink="/tasks">
+  <section
+    class="page-card not-found"
+  >
+    <h1>
+      Evaluation not found
+    </h1>
+
+    <p>
+      The requested evaluation does
+      not exist or was deleted.
+    </p>
+
+    <a
+      class="primary-button"
+      routerLink="/tasks"
+    >
       Return to tasks
     </a>
   </section>
