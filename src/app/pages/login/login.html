@@ -1,0 +1,139 @@
+<main class="login-page">
+  <section class="login-panel">
+    <div class="brand">
+      <div class="brand__mark">E</div>
+
+      <div>
+        <strong>EvalOps</strong>
+        <span>AI Quality Platform</span>
+      </div>
+    </div>
+
+    <header>
+      <span class="eyebrow">
+        Secure workspace
+      </span>
+
+      <h1>Welcome back</h1>
+
+      <p>
+        Sign in with one of the demonstration
+        accounts to explore role-based workflows.
+      </p>
+    </header>
+
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="submit()"
+    >
+      <label>
+        <span>Email address</span>
+
+        <input
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          placeholder="name@evalops.dev"
+        />
+
+        @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.invalid
+        ) {
+          <small>
+            Enter a valid email address.
+          </small>
+        }
+      </label>
+
+      <label>
+        <span>Password</span>
+
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="Enter password"
+        />
+
+        @if (
+          loginForm.controls.password.touched &&
+          loginForm.controls.password.invalid
+        ) {
+          <small>
+            Password must contain at least
+            eight characters.
+          </small>
+        }
+      </label>
+
+      @if (errorMessage(); as error) {
+        <div class="login-error" role="alert">
+          {{ error }}
+        </div>
+      }
+
+      <button
+        class="login-button"
+        type="submit"
+        [disabled]="loginForm.invalid"
+      >
+        Sign in
+      </button>
+    </form>
+
+    <section
+      class="demo-accounts"
+      aria-labelledby="demo-heading"
+    >
+      <div class="demo-accounts__heading">
+        <h2 id="demo-heading">
+          Demonstration accounts
+        </h2>
+
+        <span>Choose an account to autofill</span>
+      </div>
+
+      <div class="demo-accounts__grid">
+        @for (
+          account of demoAccounts;
+          track account.id
+        ) {
+          <button
+            type="button"
+            class="demo-account"
+            (click)="useDemoAccount(account)"
+          >
+            <strong>{{ account.role }}</strong>
+            <span>{{ account.email }}</span>
+            <small>{{ account.password }}</small>
+          </button>
+        }
+      </div>
+    </section>
+
+    <p class="security-note">
+      Demonstration authentication only. No
+      production identity provider or backend
+      authorization is connected.
+    </p>
+  </section>
+
+  <aside class="login-visual">
+    <div class="login-visual__content">
+      <span>Enterprise Angular portfolio</span>
+
+      <h2>
+        Review quality. Manage workflows.
+        Protect role-specific operations.
+      </h2>
+
+      <ul>
+        <li>Signal-based session state</li>
+        <li>Functional route guards</li>
+        <li>Role-based interface controls</li>
+        <li>Session persistence</li>
+      </ul>
+    </div>
+  </aside>
+</main>

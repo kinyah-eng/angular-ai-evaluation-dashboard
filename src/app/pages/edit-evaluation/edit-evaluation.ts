@@ -2,6 +2,7 @@ import {
   Component,
   DestroyRef,
   inject,
+  signal,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -13,40 +14,100 @@ import {
   Router,
   RouterLink,
 } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { take } from 'rxjs';
+import {
+  takeUntilDestroyed,
+} from '@angular/core/rxjs-interop';
+import {
+  catchError,
+  EMPTY,
+  exhaustMap,
+  finalize,
+  Subject,
+  take,
+  tap,
+} from 'rxjs';
 
-import { EvaluationStatus } from '../../core/evaluation-task';
-import { TaskStore } from '../../core/task-store';
+import { ApplicationError } from '../../core/errors/application-error';
+import { EvaluationStatus } from '../../data-access/models/evaluation-task.model';
+import { EvaluationFacade } from '../../data-access/state/evaluation.facade';
 
 @Component({
   selector: 'app-edit-evaluation-page',
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './edit-evaluation.html',
-  styleUrls: ['../page.scss', './edit-evaluation.scss'],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+  ],
+  templateUrl:
+    './edit-evaluation.html',
+  styleUrls: [
+    '../page.scss',
+    './edit-evaluation.scss',
+  ],
 })
 export class EditEvaluationPage {
-  private readonly formBuilder = inject(FormBuilder);
-  private readonly taskStore = inject(TaskStore);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly formBuilder =
+    inject(FormBuilder);
+
+  private readonly evaluationFacade =
+    inject(EvaluationFacade);
+
+  private readonly route =
+    inject(ActivatedRoute);
+
+  private readonly router =
+    inject(Router);
+
+  private readonly destroyRef =
+    inject(DestroyRef);
+
+  private readonly saveRequests =
+    new Subject<void>();
 
   protected taskId = '';
 
   protected loading = true;
+
   protected notFound = false;
+
+  protected readonly submitting =
+    signal(false);
+
+  protected readonly submitError =
+    signal<string | null>(null);
 
   protected readonly evaluationForm =
     this.formBuilder.nonNullable.group({
-      title: ['', [Validators.required, Validators.minLength(5)]],
-      category: ['Code Review', Validators.required],
-      reviewer: ['', Validators.required],
-      status: ['In Review' as EvaluationStatus, Validators.required],
+      title: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(5),
+        ],
+      ],
+
+      category: [
+        'Code Review',
+        Validators.required,
+      ],
+
+      reviewer: [
+        '',
+        Validators.required,
+      ],
+
+      status: [
+        'In Review' as
+          EvaluationStatus,
+        Validators.required,
+      ],
     });
 
   constructor() {
-    const taskId = this.route.snapshot.paramMap.get('id');
+    this.configureSubmission();
+
+    const taskId =
+      this.route.snapshot
+        .paramMap.get('id');
 
     if (!taskId) {
       this.loading = false;
@@ -56,11 +117,14 @@ export class EditEvaluationPage {
 
     this.taskId = taskId;
 
-    this.taskStore
+    this.evaluationFacade
       .getTask$(taskId)
       .pipe(
         take(1),
-        takeUntilDestroyed(this.destroyRef),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
       )
       .subscribe((task) => {
         this.loading = false;
@@ -80,18 +144,90 @@ export class EditEvaluationPage {
   }
 
   protected submit(): void {
-    if (this.evaluationForm.invalid || !this.taskId) {
-      this.evaluationForm.markAllAsTouched();
+    if (
+      this.evaluationForm.invalid ||
+      !this.taskId ||
+      this.submitting()
+    ) {
+      this.evaluationForm
+        .markAllAsTouched();
+
       return;
     }
 
-    const updated = this.taskStore.updateTask(
-      this.taskId,
-      this.evaluationForm.getRawValue(),
-    );
+    this.saveRequests.next();
+  }
 
-    if (updated) {
-      void this.router.navigate(['/tasks', this.taskId]);
+  private configureSubmission(): void {
+    this.saveRequests
+      .pipe(
+        exhaustMap(() => {
+          const input =
+            this.evaluationForm
+              .getRawValue();
+
+          this.submitting.set(true);
+          this.submitError.set(null);
+
+          this.evaluationForm.disable({
+            emitEvent: false,
+          });
+
+          return this.evaluationFacade
+            .saveTask(
+              this.taskId,
+              input,
+            )
+            .pipe(
+              tap((updatedTask) => {
+                void this.router.navigate([
+                  '/tasks',
+                  updatedTask.id,
+                ]);
+              }),
+
+              catchError(
+                (error: unknown) => {
+                  this.submitError.set(
+                    this.getErrorMessage(
+                      error,
+                    ),
+                  );
+
+                  return EMPTY;
+                },
+              ),
+
+              finalize(() => {
+                this.evaluationForm.enable({
+                  emitEvent: false,
+                });
+
+                this.submitting.set(false);
+              }),
+            );
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe();
+  }
+
+  private getErrorMessage(
+    error: unknown,
+  ): string {
+    if (
+      error instanceof
+      ApplicationError
+    ) {
+      return error.userMessage;
     }
+
+    return (
+      'The evaluation could not be ' +
+      'updated. Please try again.'
+    );
   }
 }

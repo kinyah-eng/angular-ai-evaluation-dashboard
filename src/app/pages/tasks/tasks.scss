@@ -120,3 +120,54 @@
   justify-content: flex-end;
   gap: 7px;
 }
+
+.task-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.task-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.task-actions button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.inline-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid
+    rgb(91 79 233 / 30%);
+  border-top-color: #5b4fe9;
+  border-radius: 50%;
+  animation:
+    task-spinner-rotate
+    650ms linear infinite;
+}
+
+.action-error {
+  flex-basis: 100%;
+  color: #a9322d;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+@keyframes task-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+  .inline-spinner {
+    animation-duration: 1.5s;
+  }
+}

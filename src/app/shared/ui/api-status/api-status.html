@@ -1,0 +1,48 @@
+<section
+  class="api-status api-status--{{ health.state().status }}"
+  aria-live="polite"
+  aria-label="API connection status"
+>
+  <span
+    class="api-status__indicator"
+    aria-hidden="true"
+  ></span>
+
+  <div class="api-status__content">
+    <strong>{{ statusLabel() }}</strong>
+
+    @if (
+      health.state().status === 'online'
+    ) {
+      <span>
+        {{ health.state().service }}
+        · v{{ health.state().version }}
+      </span>
+    } @else {
+      <span>
+        {{ health.state().message }}
+      </span>
+    }
+
+    @if (
+      health.state().checkedAt;
+      as checkedAt
+    ) {
+      <small>
+        Checked
+        {{ checkedAt | date: 'shortTime' }}
+      </small>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="api-status__refresh"
+    aria-label="Refresh API connection status"
+    title="Refresh API status"
+    [disabled]="health.isChecking()"
+    (click)="refresh()"
+  >
+    ↻
+  </button>
+</section>

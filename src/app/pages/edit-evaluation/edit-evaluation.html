@@ -3,24 +3,44 @@
     <p>Loading evaluation…</p>
   </section>
 } @else if (notFound) {
-  <section class="page-card not-found">
+  <section
+    class="page-card not-found"
+  >
     <h1>Evaluation not found</h1>
-    <p>The requested evaluation cannot be edited.</p>
-    <a class="primary-button" routerLink="/tasks">
+
+    <p>
+      The requested evaluation
+      cannot be edited.
+    </p>
+
+    <a
+      class="primary-button"
+      routerLink="/tasks"
+    >
       Return to tasks
     </a>
   </section>
 } @else {
   <header class="page-header">
     <div>
-      <span class="eyebrow">{{ taskId }}</span>
+      <span class="eyebrow">
+        {{ taskId }}
+      </span>
+
       <h1>Edit Evaluation</h1>
-      <p>Update the task assignment, reviewer, or status.</p>
+
+      <p>
+        Update the task assignment,
+        reviewer, or status.
+      </p>
     </div>
 
     <a
       class="secondary-button"
-      [routerLink]="['/tasks', taskId]"
+      [routerLink]="[
+        '/tasks',
+        taskId
+      ]"
     >
       Cancel
     </a>
@@ -29,18 +49,24 @@
   <form
     class="page-card evaluation-form"
     [formGroup]="evaluationForm"
+    [attr.aria-busy]="submitting()"
     (ngSubmit)="submit()"
   >
     <label>
       <span>Task title</span>
-      <input type="text" formControlName="title" />
+
+      <input
+        type="text"
+        formControlName="title"
+      />
 
       @if (
         evaluationForm.controls.title.touched &&
         evaluationForm.controls.title.invalid
       ) {
         <small>
-          Enter a title containing at least five characters.
+          Enter a title containing at
+          least five characters.
         </small>
       }
     </label>
@@ -48,7 +74,10 @@
     <div class="form-grid">
       <label>
         <span>Category</span>
-        <select formControlName="category">
+
+        <select
+          formControlName="category"
+        >
           <option>Code Review</option>
           <option>Debugging</option>
           <option>Maintainability</option>
@@ -59,9 +88,14 @@
 
       <label>
         <span>Status</span>
-        <select formControlName="status">
+
+        <select
+          formControlName="status"
+        >
           <option>In Review</option>
-          <option>Needs Attention</option>
+          <option>
+            Needs Attention
+          </option>
           <option>Completed</option>
         </select>
       </label>
@@ -69,13 +103,36 @@
 
     <label>
       <span>Reviewer</span>
-      <input type="text" formControlName="reviewer" />
+
+      <input
+        type="text"
+        formControlName="reviewer"
+      />
     </label>
+
+    @if (
+      submitError();
+      as error
+    ) {
+      <div
+        class="submission-error"
+        role="alert"
+      >
+        <strong>
+          Update failed
+        </strong>
+
+        <span>{{ error }}</span>
+      </div>
+    }
 
     <div class="form-actions">
       <a
         class="secondary-button"
-        [routerLink]="['/tasks', taskId]"
+        [routerLink]="[
+          '/tasks',
+          taskId
+        ]"
       >
         Cancel
       </a>
@@ -83,9 +140,21 @@
       <button
         class="primary-button"
         type="submit"
-        [disabled]="evaluationForm.invalid"
+        [disabled]="
+          evaluationForm.invalid ||
+          submitting()
+        "
       >
-        Save changes
+        @if (submitting()) {
+          <span
+            class="button-spinner"
+            aria-hidden="true"
+          ></span>
+
+          Saving…
+        } @else {
+          Save changes
+        }
       </button>
     </div>
   </form>

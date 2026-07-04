@@ -1,6 +1,10 @@
 <div class="app-shell">
   <aside class="sidebar">
-    <a class="brand" routerLink="/" aria-label="EvalOps dashboard">
+    <a
+      class="brand"
+      routerLink="/"
+      aria-label="EvalOps dashboard"
+    >
       <div class="brand__mark">E</div>
 
       <div>
@@ -9,12 +13,20 @@
       </div>
     </a>
 
-    <nav class="navigation" aria-label="Main navigation">
+    <app-api-status />
+
+    <nav
+      class="navigation"
+      aria-label="Main navigation"
+    >
       <a
         class="navigation__item"
         routerLink="/"
-        routerLinkActive="navigation__item--active"
-        [routerLinkActiveOptions]="{ exact: true }"
+        routerLinkActive=
+          "navigation__item--active"
+        [routerLinkActiveOptions]="{
+          exact: true
+        }"
         ariaCurrentWhenActive="page"
       >
         <span>⌂</span>
@@ -24,55 +36,89 @@
       <a
         class="navigation__item"
         routerLink="/tasks"
-        routerLinkActive="navigation__item--active"
+        routerLinkActive=
+          "navigation__item--active"
         ariaCurrentWhenActive="page"
       >
         <span>▤</span>
         Evaluation Tasks
       </a>
 
-      <a
-        class="navigation__item"
-        routerLink="/reviews"
-        routerLinkActive="navigation__item--active"
-        ariaCurrentWhenActive="page"
-      >
-        <span>✓</span>
-        Reviews
-      </a>
+      @if (
+        auth.hasAnyRole(reviewRoles)
+      ) {
+        <a
+          class="navigation__item"
+          routerLink="/reviews"
+          routerLinkActive=
+            "navigation__item--active"
+          ariaCurrentWhenActive="page"
+        >
+          <span>✓</span>
+          Reviews
+        </a>
 
-      <a
-        class="navigation__item"
-        routerLink="/analytics"
-        routerLinkActive="navigation__item--active"
-        ariaCurrentWhenActive="page"
-      >
-        <span>⌁</span>
-        Analytics
-      </a>
+        <a
+          class="navigation__item"
+          routerLink="/analytics"
+          routerLinkActive=
+            "navigation__item--active"
+          ariaCurrentWhenActive="page"
+        >
+          <span>⌁</span>
+          Analytics
+        </a>
+      }
 
-      <a
-        class="navigation__item"
-        routerLink="/settings"
-        routerLinkActive="navigation__item--active"
-        ariaCurrentWhenActive="page"
-      >
-        <span>⚙</span>
-        Settings
-      </a>
+      @if (
+        auth.hasAnyRole(adminRoles)
+      ) {
+        <a
+          class="navigation__item"
+          routerLink="/settings"
+          routerLinkActive=
+            "navigation__item--active"
+          ariaCurrentWhenActive="page"
+        >
+          <span>⚙</span>
+          Settings
+        </a>
+      }
     </nav>
 
-    <div class="sidebar__profile">
-      <div class="avatar">SK</div>
+    @if (
+      auth.currentUser();
+      as user
+    ) {
+      <div class="sidebar__profile">
+        <div class="avatar">
+          {{ auth.initials() }}
+        </div>
 
-      <div>
-        <strong>Samuel Kamande</strong>
-        <span>Senior Evaluator</span>
+        <div class="sidebar__profile-content">
+          <strong>{{ user.name }}</strong>
+
+          <span class="sidebar__role">
+            {{ user.role }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="sidebar__logout"
+          aria-label="Sign out"
+          title="Sign out"
+          (click)="logout()"
+        >
+          ↪
+        </button>
       </div>
-    </div>
+    }
   </aside>
 
   <main class="main-content">
     <router-outlet />
   </main>
 </div>
+
+<app-toast-container />
